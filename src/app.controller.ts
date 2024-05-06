@@ -7,11 +7,6 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    return this.appService.getHello();
-  }
-
-  @Get('test')
-  getTest(): string {
-    return this.appService.getTest();
+    return this.appService.getInitialize();
   }
 }
