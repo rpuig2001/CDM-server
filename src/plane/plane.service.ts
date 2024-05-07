@@ -5,14 +5,15 @@ import axios from 'axios';
 
 @Injectable()
 export class PlaneService {
-  async cidCheck(cid: number): Promise<string> {
+  async getCid(callsign: string): Promise<number> {
     const planes = await this.getPilots();
     for (const plane of planes) {
-      if (plane.id == cid) {
-        return plane.callsign;
+      if (plane.callsign == callsign) {
+        console.log(`Plane ${callsign} is linked with CID ${plane.id}`);
+        return plane.id;
       }
     }
-    console.log(`Plane with CID ${cid} not found`);
+    console.log(`Plane ${callsign} not found`);
     return null;
   }
 

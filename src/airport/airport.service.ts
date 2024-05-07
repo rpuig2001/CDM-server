@@ -22,6 +22,10 @@ export class AirportService {
     await this.airportModel.deleteMany({ position: position }).exec();
   }
 
+  async removeByAirport(airport: string): Promise<void> {
+    await this.airportModel.deleteMany({ icao: airport }).exec();
+  }
+
   async findAll(): Promise<Airport[]> {
     return this.airportModel.find().exec();
   }
@@ -67,10 +71,5 @@ export class AirportService {
     }
     console.log(position, 'not owning master of airport:', airport);
     return false;
-  }
-
-  async removeAllMasterAirport(position: string): Promise<boolean> {
-    await this.removeByPosition(position);
-    return true;
   }
 }

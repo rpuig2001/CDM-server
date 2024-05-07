@@ -39,9 +39,15 @@ export class AirportController {
     return false;
   }
 
-  @Post('removeAllMaster')
-  setQueryToRemoveAllMaster(@Query('position') position: string) {
+  @Post('removeAllMasterByPosition')
+  setQueryToRemoveAllMasterByPosition(@Query('position') position: string) {
     console.log(`Removed all entries for ${position}`);
-    return this.airportService.removeAllMasterAirport(position);
+    this.airportService.removeByPosition(position);
+  }
+
+  @Post('removeAllMasterByAirport')
+  setQueryToRemoveAllMasterByAirport(@Query('airport') airport: string) {
+    console.log(`Removed all entries for ${airport}`);
+    this.airportService.removeByAirport(airport);
   }
 }

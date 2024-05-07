@@ -6,7 +6,7 @@ export class PlaneController {
   constructor(private readonly planeService: PlaneService) {}
 
   @Get('cidCheck')
-  setQueryToCheckCid(@Query('cid') cid: number) {
-    return this.planeService.cidCheck(cid);
+  setQueryToCheckCid(@Query('callsign') callsign: string) {
+    return this.planeService.getCid(callsign);
   }
 }
