@@ -38,4 +38,10 @@ export class AirportController {
     }
     return false;
   }
+
+  @Post('removeAllMaster')
+  setQueryToRemoveAllMaster(@Query('position') position: string) {
+    console.log(`Removed all entries for ${position}`);
+    return this.airportService.removeAllMasterAirport(position);
+  }
 }
