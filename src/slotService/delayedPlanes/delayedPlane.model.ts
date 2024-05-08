@@ -1,4 +1,3 @@
-// delayed-plane.model.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema()

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
-import { DelayedPlane } from './delayedPlanes/delayedPlane.model';
 import { AirspaceBase } from './interface/airspace-base.interface';
 import { AirspaceAll } from './interface/airspaces-all.interface';
 import { AirspaceCounter } from './interface/airspace-counter.interface';
 import { AirspaceComplete } from './interface/airspace-complete.interface';
+import { DelayedPlane } from './delayedPlanes/delayedPlane.model';
 
 @Injectable()
 export class SlotService {
-  constructor(private readonly slotResultService: DelayedPlaneService) {}
+  constructor(private readonly delayedPlaneService: DelayedPlaneService) {}
 
   async delayPlanes(planes: any[]): Promise<DelayedPlane[]> {
     const delayedPlanes: DelayedPlane[] = [];
@@ -179,10 +179,16 @@ export class SlotService {
           `${callsign} - Is regulated over ${delayedPlane.mostPenalizingAirspace}, new CTOT ${delayedPlane.ctot}`,
         );
         // Save the delayed plane
-        await this.slotResultService.saveDelayedPlane(delayedPlane);
+        await this.delayedPlaneService.saveDelayedPlane(delayedPlane);
 
         // Add delayed plane to the array
         delayedPlanes.push(delayedPlane);
+        try {
+          await this.delayedPlaneService.saveDelayedPlane(delayedPlane);
+          console.log(`${callsign} - saved to DB`);
+        } catch (error) {
+          console.log(`${callsign} - ERROR saving to DB`, error);
+        }
       } else {
         console.log(`${callsign} - Is not regulated regulated `);
       }
