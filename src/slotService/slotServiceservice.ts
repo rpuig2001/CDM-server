@@ -116,12 +116,39 @@ export class SlotService {
 
         //If there is any airspace that we need to restict, we get the most overloaded
         if (airspaceToFix.counter > 0) {
-          console.log(
-            `${callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
+          const now = new Date(); // Current time
+          const fifteenMinutes = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+          // Convert flight_plan.deptime to a Date object
+          const timedep = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            parseInt(flight_plan.deptime.substring(0, 2)),
+            parseInt(flight_plan.deptime.substring(2)),
           );
-          newdeptime = this.addMinutesToTime(newdeptime, 1);
-          console.log(`${callsign} - New CTOT ${newdeptime} re-calculating...`);
-          isOverloaded = true;
+
+          // Calculate the time 15 minutes from now
+          const fifteenMinutesFromNow = new Date(
+            now.getTime() + fifteenMinutes,
+          );
+
+          // Compare timedep with fifteenMinutesFromNow
+          if (timedep > fifteenMinutesFromNow) {
+            isOverloaded = false;
+            console.log(
+              `${callsign} - Skipping depTime ${timedep} is in the past `,
+            );
+          } else {
+            isOverloaded = true;
+            console.log(
+              `${callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
+            );
+            newdeptime = this.addMinutesToTime(newdeptime, 1);
+            console.log(
+              `${callsign} - New CTOT ${newdeptime} re-calculating...`,
+            );
+          }
         } else {
           isOverloaded = false;
           if (newdeptime != flight_plan.deptime) {
@@ -129,11 +156,12 @@ export class SlotService {
             delayedPlane.callsign = callsign;
             delayedPlane.departure = flight_plan.departure;
             delayedPlane.arrival = flight_plan.arrival;
+            delayedPlane.eobt = flight_plan.deptime;
+            delayedPlane.ctot = newdeptime;
             delayedPlane.delayTime = this.getDifCTOTandEOBT(
               newdeptime,
               flight_plan.deptime,
             );
-            delayedPlane.ctot = newdeptime;
             delayedPlane.mostPenalizingAirspace = airspaceToFix.airspaceName;
             delayedPlane.reason = `${delayedPlane.mostPenalizingAirspace} capacity`;
           }

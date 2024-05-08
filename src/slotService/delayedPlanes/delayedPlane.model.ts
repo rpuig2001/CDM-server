@@ -13,6 +13,9 @@ export class DelayedPlane {
   arrival: string;
 
   @Prop()
+  eobt: string;
+
+  @Prop()
   ctot: string;
 
   @Prop()
