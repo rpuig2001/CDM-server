@@ -19,125 +19,149 @@ export class SlotService {
       let isRegulatedAirspace = false;
       const delayedPlane = new DelayedPlane();
 
+      console.log(
+        `---------- This is the start of the log for ${callsign} ----------`,
+      );
+
       if (flight_plan == null) {
-        console.log(`Flightplan not available for ${callsign}`);
+        console.log(`Flightplan not available`);
+        console.log(
+          `----------------- Finshed processing ${callsign} -----------------`,
+        );
         continue;
       }
 
       if (flight_plan.flight_rules == 'V') {
-        console.log(`VFR Flightplan not processed for ${callsign}`);
+        console.log(`VFR Flightplan not processed`);
+        console.log(
+          `----------------- Finshed processing ${callsign} -----------------`,
+        );
         continue;
       }
+      let newdeptime = flight_plan.deptime;
 
-      //Check airspace restrictions
-      const counterArray: AirspaceCounter[] = [];
-      const myairspaces = this.extractRouteObjectsFromRemarks(
-        flight_plan.remarks,
-        flight_plan.deptime,
-      );
-      //Loop my airspaces airspace by airspace
-      for (const myairspace of myairspaces) {
-        console.log(
-          `${callsign} - ${myairspace.airspace} entry: ${myairspace.entryTime}, exit ${myairspace.exitTime}`,
-        );
-        let counter = 0;
-        //Loop the main airspaces all to check other planes
-        for (const au of airspaceAll) {
-          //Check one by one every airpsace of each airspace user
-          for (const airspace of au.airspaces) {
-            //We check if the au airspace name is the same as the one we are comparing
-            if (airspace.airspace == myairspace.airspace) {
-              //We check entry/exit times
-              const entryTime1 = myairspace.entryTime;
-              const exitTime1 = myairspace.exitTime;
-              const entryTime2 = airspace.entryTime;
-              const exitTime2 = airspace.exitTime;
-
-              if (
-                this.isBetweenEntryAndExit(
-                  entryTime1,
-                  exitTime1,
-                  entryTime2,
-                  exitTime2,
-                )
-              ) {
-                console.log(
-                  `${callsign} with entry: ${entryTime1} and exit ${exitTime1}. Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter} + 1)`,
-                );
-                //If it is inside the timeframe, we increase the counter +1
-                counter = counter + 1;
-              }
-            }
-          }
-        }
-        //After checking all airspaces from all airspace users, we save the counter value
-        const counterObj: AirspaceCounter = {
-          airspaceName: myairspace.airspace,
-          counter: counter,
-        };
-        counterArray.push(counterObj);
-      }
-
-      //As soon as we checked all the airspaces, we find the most penalising
+      let isOverloaded = true;
+      let myairspaces: AirspaceComplete[];
       const airspaceToFix: AirspaceCounter = {
         airspaceName: '',
         counter: 0,
       };
-      for (const airspaceCounter of counterArray) {
-        const maxValue = 5;
-        //We check the airspace max allowed (maxvalue can be used using airspaceCounter.airspaceName)
-        if (airspaceCounter.counter > maxValue) {
-          if (airspaceCounter.counter - maxValue > airspaceToFix.counter) {
-            airspaceToFix.counter = airspaceCounter.counter - maxValue;
-            airspaceToFix.airspaceName = airspaceCounter.airspaceName;
+      while (isOverloaded) {
+        const counterArray: AirspaceCounter[] = [];
+        myairspaces = this.extractRouteObjectsFromRemarks(
+          flight_plan.remarks,
+          newdeptime,
+        );
+        //Loop my airspaces airspace by airspace
+        /*if (airspaceToFix.airspaceName != '') {
+          for (let i = 0; i < myairspaces.length; i++) {
+            const myairspace = myairspaces[i];
+            if (myairspace.airspace != airspaceToFix.airspaceName) {
+              myairspaces.splice(i, 1);
+            }
+          }
+        }*/
+        for (const myairspace of myairspaces) {
+          console.log(
+            `${callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`,
+          );
+          let counter = 0;
+          //Loop the main airspaces all to check other planes
+          for (const au of airspaceAll) {
+            //Check one by one every airpsace of each airspace user
+            for (const airspace of au.airspaces) {
+              //We check if the au airspace name is the same as the one we are comparing
+              if (airspace.airspace == myairspace.airspace) {
+                //We check entry/exit times
+                const entryTime1 = myairspace.entryTime;
+                const exitTime1 = myairspace.exitTime;
+                const entryTime2 = airspace.entryTime;
+                const exitTime2 = airspace.exitTime;
+
+                if (
+                  this.isBetweenEntryAndExit(
+                    entryTime1,
+                    exitTime1,
+                    entryTime2,
+                    exitTime2,
+                  )
+                ) {
+                  console.log(
+                    `${callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
+                  );
+                  //If it is inside the timeframe, we increase the counter +1
+                  counter = counter + 1;
+                }
+              }
+            }
+          }
+          //After checking all airspaces from all airspace users, we save the counter value
+          const counterObj: AirspaceCounter = {
+            airspaceName: myairspace.airspace,
+            counter: counter,
+          };
+          counterArray.push(counterObj);
+        }
+        airspaceToFix.counter = 0;
+        for (const airspaceCounter of counterArray) {
+          const maxValue = 5;
+          //We check the airspace max allowed (maxvalue can be used using airspaceCounter.airspaceName)
+          if (airspaceCounter.counter > maxValue) {
+            if (airspaceCounter.counter - maxValue > airspaceToFix.counter) {
+              airspaceToFix.counter = airspaceCounter.counter - maxValue;
+              airspaceToFix.airspaceName = airspaceCounter.airspaceName;
+            }
           }
         }
-      }
 
-      //If there is any airspace that we need to restict, we get the most overloaded
-      if (airspaceToFix.counter > 0) {
-        console.log(
-          `${callsign} detected ${airspaceToFix.counter} over ${airspaceToFix.airspaceName}`,
-        );
-        // Re-run the calculation process, increasing the depTime 1 min by 1 min until airspaceToFix is okay to overfly without overload
-        let depTimeFixed = flight_plan.deptime;
-        let airspaceIsOverloaded = true;
-
-        while (airspaceIsOverloaded) {
-          depTimeFixed = this.addMinutesToTime(depTimeFixed, 1);
-          //airspaceIsOverloaded = isOverloaded();
-          airspaceIsOverloaded = false;
+        //If there is any airspace that we need to restict, we get the most overloaded
+        if (airspaceToFix.counter > 0) {
+          console.log(
+            `${callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
+          );
+          newdeptime = this.addMinutesToTime(newdeptime, 1);
+          console.log(`${callsign} - New CTOT ${newdeptime} re-calculating...`);
+          isOverloaded = true;
+        } else {
+          isOverloaded = false;
+          if (newdeptime != flight_plan.deptime) {
+            isRegulatedAirspace = true;
+            delayedPlane.callsign = callsign;
+            delayedPlane.departure = flight_plan.departure;
+            delayedPlane.arrival = flight_plan.arrival;
+            delayedPlane.delayTime = this.getDifCTOTandEOBT(
+              newdeptime,
+              flight_plan.deptime,
+            );
+            delayedPlane.ctot = newdeptime;
+            delayedPlane.mostPenalizingAirspace = airspaceToFix.airspaceName;
+            delayedPlane.reason = `${delayedPlane.mostPenalizingAirspace} capacity`;
+          }
         }
-        isRegulatedAirspace = true;
-        delayedPlane.callsign = callsign;
-        delayedPlane.departure = flight_plan.departure;
-        delayedPlane.arrival = flight_plan.arrival;
-        delayedPlane.delayTime = this.getDifCTOTandEOBT(
-          depTimeFixed,
-          flight_plan.deptime,
-        );
-        delayedPlane.ctot = depTimeFixed;
-        delayedPlane.mostPenalizingAirspace = airspaceToFix.airspaceName;
-        delayedPlane.reason = `${delayedPlane.mostPenalizingAirspace} capacity`;
       }
       //Adding value to the main list
       const airspaceAllElement: AirspaceAll = {
         airspaces: myairspaces,
       };
+
       airspaceAll.push(airspaceAllElement);
 
       if (isRegulatedAirspace) {
         console.log(
-          `${callsign} isRegulated over ${delayedPlane.mostPenalizingAirspace}`,
+          `${callsign} - Is regulated over ${delayedPlane.mostPenalizingAirspace}, new CTOT ${delayedPlane.ctot}`,
         );
         // Save the delayed plane
         await this.slotResultService.saveDelayedPlane(delayedPlane);
 
         // Add delayed plane to the array
         delayedPlanes.push(delayedPlane);
+      } else {
+        console.log(`${callsign} - Is not regulated regulated `);
       }
+      console.log(
+        `----------------- Finshed processing ${callsign} -----------------`,
+      );
     }
-
     delayedPlanes.sort((a, b) =>
       a.mostPenalizingAirspace.localeCompare(b.mostPenalizingAirspace),
     );
