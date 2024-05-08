@@ -14,7 +14,7 @@ export class AppService {
       const response = await axios.get(
         'http://localhost:3000/slotService/calculate',
       );
-      console.log(`HTTP request successful: ${response.data}`);
+      console.log(`Request sent to start calculation`);
     } catch (error) {
       console.error(`HTTP request failed: ${error.message}`);
     }
