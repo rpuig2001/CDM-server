@@ -11,9 +11,7 @@ export class AppService {
   @Cron('*/10 * * * *')
   async handleCron() {
     try {
-      const response = await axios.get(
-        'http://localhost:3000/slotService/calculate',
-      );
+      await axios.get('http://localhost:3000/slotService/calculate');
       console.log(`Request sent to start calculation`);
     } catch (error) {
       console.error(`HTTP request failed: ${error.message}`);
