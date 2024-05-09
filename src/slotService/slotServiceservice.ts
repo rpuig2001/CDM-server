@@ -108,8 +108,6 @@ export class SlotService {
 
             console.log(`${callsign} - Is regulated over ${delayedPlane.mostPenalizingAirspace}, new CTOT ${delayedPlane.ctot}`);
 
-            await this.delayedPlaneService.saveDelayedPlane(delayedPlane);
-
             delayedPlanes.push(delayedPlane);
 
             try {
@@ -134,6 +132,8 @@ export class SlotService {
     }
 
     delayedPlanes.sort((a, b) => a.mostPenalizingAirspace.localeCompare(b.mostPenalizingAirspace));
+
+    await this.delayedPlaneService.saveDelayedPlane(delayedPlanes);
 
     return delayedPlanes;
   }
