@@ -110,12 +110,6 @@ export class SlotService {
 
             delayedPlanes.push(delayedPlane);
 
-            try {
-              await this.delayedPlaneService.saveDelayedPlane(delayedPlane);
-              console.log(`${callsign} - saved to DB`);
-            } catch (error) {
-              console.log(`${callsign} - ERROR saving to DB`, error);
-            }
           } else {
             console.log(`${callsign} - Is not regulated regulated`);
           }
@@ -131,9 +125,14 @@ export class SlotService {
       console.log(`----------------- Finshed processing ${callsign} -----------------`);
     }
 
-    delayedPlanes.sort((a, b) => a.mostPenalizingAirspace.localeCompare(b.mostPenalizingAirspace));
+    try {
+      await this.delayedPlaneService.saveDelayedPlane(delayedPlanes);
+      console.log(`Data saved to DB`);
+    } catch (error) {
+      console.log(`ERROR saving to DB`, error);
+    }
 
-    await this.delayedPlaneService.saveDelayedPlane(delayedPlanes);
+    delayedPlanes.sort((a, b) => a.mostPenalizingAirspace.localeCompare(b.mostPenalizingAirspace));
 
     return delayedPlanes;
   }
