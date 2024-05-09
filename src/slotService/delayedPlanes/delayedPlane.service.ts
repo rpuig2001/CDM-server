@@ -29,7 +29,7 @@ export class DelayedPlaneService {
       .exec();
   }
 
-  async saveDelayedPlane(plane: DelayedPlane): Promise<DelayedPlane> {
+   async saveDelayedPlane(plane: DelayedPlane): Promise<DelayedPlane> {
     // Find all planes in the database
     const allPlanes = await this.slotServiceModel.find();
 
@@ -50,6 +50,9 @@ export class DelayedPlaneService {
         );
       }
     }
+
+    // Wait for all delete promises to complete
+    await Promise.all(deletePromises);
 
     // If an existing plane was found, replace it
     if (existingPlane) {
