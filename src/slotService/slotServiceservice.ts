@@ -79,12 +79,12 @@ export class SlotService {
         }
 
         if (airspaceToFix.counter > 0) {
-          const now = new Date();
-          const fifteenMinutes = 15 * 60 * 1000;
-          const timedep = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(flight_plan.deptime.substring(0, 2)), parseInt(flight_plan.deptime.substring(2))));
-          const fifteenMinutesFromNow = new Date(now.getTime() + fifteenMinutes);
+            const now = new Date();
+            const fifteenMinutes = 15 * 60 * 1000;
+            const timedep = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(flight_plan.deptime.substring(0, 2)), parseInt(flight_plan.deptime.substring(2)));
+            const fifteenMinutesFromNow = new Date(now.getTime() + fifteenMinutes);
 
-          if (timedep > fifteenMinutesFromNow) {
+            if (timedep.getTime() > fifteenMinutesFromNow.getTime()) {
             isOverloaded = false;
             console.log(`${callsign} - Skipping depTime ${timedep} is in the past`);
           } else {
