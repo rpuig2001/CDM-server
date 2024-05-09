@@ -29,7 +29,7 @@ export class DelayedPlaneService {
       .exec();
   }
 
-   async saveDelayedPlane(plane: DelayedPlane): Promise<DelayedPlane> {
+  async saveDelayedPlane(planes: DelayedPlane[]): Promise<void> {
     // Find all planes in the database
     const allPlanes = await this.slotServiceModel.find();
 
@@ -37,37 +37,37 @@ export class DelayedPlaneService {
     const deletePromises = [];
 
     // Check if a plane with the same callsign exists in the database
-    let existingPlane;
     for (const dbPlane of allPlanes) {
-      if (dbPlane.callsign === plane.callsign) {
-        existingPlane = dbPlane;
-      } else {
+      let found = false;
+      for (const plane of planes) {
+        if (dbPlane.callsign === plane.callsign) {
+          //Overried database entry already existing
+          dbPlane.set(plane);
+          found = true;
+          break;
+        }
+      }
+      if(!found){
         // If a plane with a different callsign exists, delete it
-        deletePromises.push(
           this.slotServiceModel.deleteOne({
             _id: dbPlane._id,
-          }),
-        );
+          });
       }
     }
 
-    // Wait for all delete promises to complete
-    await Promise.all(deletePromises);
-
-    // If an existing plane was found, replace it
-    if (existingPlane) {
-      // Update existing plane with new data
-      existingPlane.set(plane);
-
-      // Save the updated plane
-      await existingPlane.save();
-
-      return plane;
-    } else {
-      // If no plane with the same callsign exists, create a new one
-      const newPlane = new this.slotServiceModel(plane);
-      await newPlane.save(); // Save the new plane
-      return newPlane.toObject(); // Convert Mongoose document to plain object and return it
+    for (const plane of planes) {
+      let found = false;
+      for (const dbPlane of allPlanes) {
+        if (plane.callsign === dbPlane.callsign) {
+          found = true;
+          break;
+        }
+      }
+      if(!found){
+        // Create a new plane
+        const newPlane = new this.slotServiceModel(plane);
+        await newPlane.save();
+      }
     }
   }
 }
