@@ -4,6 +4,7 @@ import { AirspaceAll } from './interface/airspaces-all.interface';
 import { AirspaceCounter } from './interface/airspace-counter.interface';
 import { AirspaceComplete } from './interface/airspace-complete.interface';
 import { DelayedPlane } from './delayedPlanes/delayedPlane.model';
+import { AirspaceCapacity } from './airspaceCapacity/airspaceCapacity.model';
 
 @Injectable()
 export class SlotService {
@@ -12,6 +13,17 @@ export class SlotService {
   async delayPlanes(planes: any[]): Promise<DelayedPlane[]> {
     const delayedPlanes: DelayedPlane[] = [];
     const airspaceAll: AirspaceAll[] = [];
+
+    const airspacesCapacity: AirspaceCapacity[] = [
+      { name: 'LECB', value: 10 },
+      { name: 'LECM', value: 10 },
+      { name: 'EDUU', value: 15 },
+      { name: 'LFFF', value: 15 },
+      { name: 'LOVV"', value: 10 },
+      { name: 'EGTT', value: 10 },
+      { name: 'EDVV', value: 10 },
+      { name: 'CZQX', value: 10 },
+    ];
 
     for (const plane of planes) {
       const { callsign, flight_plan } = plane;
@@ -85,7 +97,16 @@ export class SlotService {
         airspaceToFix.counter = 0;
 
         for (const airspaceCounter of counterArray) {
-          const maxValue = 5;
+          const airspaceCapacity = airspacesCapacity.find(
+            (airspace) => airspace.name === airspaceCounter.airspaceName,
+          );
+
+          //Defining maxValue defining to default value
+          let maxValue = 5;
+
+          if (airspaceCapacity) {
+            maxValue = airspaceCapacity.value;
+          }
 
           if (airspaceCounter.counter > maxValue) {
             if (airspaceCounter.counter - maxValue > airspaceToFix.counter) {
