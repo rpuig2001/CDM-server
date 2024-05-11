@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
-import { AirspaceBase } from './interface/airspace-base.interface';
 import { AirspaceAll } from './interface/airspaces-all.interface';
 import { AirspaceCounter } from './interface/airspace-counter.interface';
 import { AirspaceComplete } from './interface/airspace-complete.interface';
@@ -18,11 +17,15 @@ export class SlotService {
       const { callsign, flight_plan } = plane;
       const delayedPlane = new DelayedPlane();
 
-      console.log(`---------- This is the start of the log for ${callsign} ----------`);
+      console.log(
+        `---------- This is the start of the log for ${callsign} ----------`,
+      );
 
       if (flight_plan == null || flight_plan.flight_rules == 'V') {
         console.log(`Flightplan not available or VFR Flightplan, skipping`);
-        console.log(`----------------- Finshed processing ${callsign} -----------------`);
+        console.log(
+          `----------------- Finshed processing ${callsign} -----------------`,
+        );
         continue;
       }
 
@@ -36,10 +39,15 @@ export class SlotService {
 
       while (isOverloaded) {
         const counterArray: AirspaceCounter[] = [];
-        myairspaces = this.extractRouteObjectsFromRemarks(flight_plan.remarks, newdeptime);
+        myairspaces = this.extractRouteObjectsFromRemarks(
+          flight_plan.remarks,
+          newdeptime,
+        );
 
         for (const myairspace of myairspaces) {
-          console.log(`${callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`);
+          console.log(
+            `${callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`,
+          );
           let counter = 0;
 
           for (const au of airspaceAll) {
@@ -50,8 +58,17 @@ export class SlotService {
                 const entryTime2 = airspace.entryTime;
                 const exitTime2 = airspace.exitTime;
 
-                if (this.isBetweenEntryAndExit(entryTime1, exitTime1, entryTime2, exitTime2)) {
-                  console.log(`${callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`);
+                if (
+                  this.isBetweenEntryAndExit(
+                    entryTime1,
+                    exitTime1,
+                    entryTime2,
+                    exitTime2,
+                  )
+                ) {
+                  console.log(
+                    `${callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
+                  );
                   counter++;
                 }
               }
@@ -79,19 +96,33 @@ export class SlotService {
         }
 
         if (airspaceToFix.counter > 0) {
-            const now = new Date();
-            const fifteenMinutes = 15 * 60 * 1000;
-            const timedep = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(flight_plan.deptime.substring(0, 2)), parseInt(flight_plan.deptime.substring(2)));
-            const fifteenMinutesFromNow = new Date(now.getTime() + fifteenMinutes);
+          const now = new Date();
+          const fifteenMinutes = 15 * 60 * 1000;
+          const timedep = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            parseInt(flight_plan.deptime.substring(0, 2)),
+            parseInt(flight_plan.deptime.substring(2)),
+          );
+          const fifteenMinutesFromNow = new Date(
+            now.getTime() + fifteenMinutes,
+          );
 
-            if (timedep.getTime() > fifteenMinutesFromNow.getTime()) {
+          if (timedep.getTime() > fifteenMinutesFromNow.getTime()) {
             isOverloaded = false;
-            console.log(`${callsign} - Skipping depTime ${timedep} is in the past`);
+            console.log(
+              `${callsign} - Skipping depTime ${timedep} is in the past`,
+            );
           } else {
             isOverloaded = true;
-            console.log(`${callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`);
+            console.log(
+              `${callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
+            );
             newdeptime = this.addMinutesToTime(newdeptime, 1);
-            console.log(`${callsign} - New CTOT ${newdeptime} re-calculating...`);
+            console.log(
+              `${callsign} - New CTOT ${newdeptime} re-calculating...`,
+            );
           }
         } else {
           isOverloaded = false;
@@ -102,14 +133,18 @@ export class SlotService {
             delayedPlane.arrival = flight_plan.arrival;
             delayedPlane.eobt = flight_plan.deptime;
             delayedPlane.ctot = newdeptime;
-            delayedPlane.delayTime = this.getDifCTOTandEOBT(newdeptime, flight_plan.deptime);
+            delayedPlane.delayTime = this.getDifCTOTandEOBT(
+              newdeptime,
+              flight_plan.deptime,
+            );
             delayedPlane.mostPenalizingAirspace = airspaceToFix.airspaceName;
             delayedPlane.reason = `${delayedPlane.mostPenalizingAirspace} capacity`;
 
-            console.log(`${callsign} - Is regulated over ${delayedPlane.mostPenalizingAirspace}, new CTOT ${delayedPlane.ctot}`);
+            console.log(
+              `${callsign} - Is regulated over ${delayedPlane.mostPenalizingAirspace}, new CTOT ${delayedPlane.ctot}`,
+            );
 
             delayedPlanes.push(delayedPlane);
-
           } else {
             console.log(`${callsign} - Is not regulated regulated`);
           }
@@ -122,7 +157,9 @@ export class SlotService {
 
       airspaceAll.push(airspaceAllElement);
 
-      console.log(`----------------- Finshed processing ${callsign} -----------------`);
+      console.log(
+        `----------------- Finshed processing ${callsign} -----------------`,
+      );
     }
 
     try {
@@ -132,7 +169,9 @@ export class SlotService {
       console.log(`ERROR saving to DB`, error);
     }
 
-    delayedPlanes.sort((a, b) => a.mostPenalizingAirspace.localeCompare(b.mostPenalizingAirspace));
+    delayedPlanes.sort((a, b) =>
+      a.mostPenalizingAirspace.localeCompare(b.mostPenalizingAirspace),
+    );
 
     return delayedPlanes;
   }
@@ -167,15 +206,10 @@ export class SlotService {
 
     const objects: AirspaceComplete[] = [];
 
-    let previousExitTime = deptime;
-
     for (let i = 0; i < airportCodes.length; i++) {
       const code = airportCodes[i];
       const airspace = code.substring(0, 4);
-      const entryTime = this.calculateEntryExitTime(
-        code.substring(4),
-        deptime,
-      );
+      const entryTime = this.calculateEntryExitTime(code.substring(4), deptime);
 
       let exitTime = deptime;
 
@@ -193,8 +227,6 @@ export class SlotService {
         entryTime,
         exitTime,
       });
-
-      previousExitTime = exitTime;
     }
 
     return objects;
