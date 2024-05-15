@@ -68,10 +68,19 @@ export class DelayedPlaneService {
       const dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
         // Update all fields of the existing plane
-        /*if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
-          Object.assign(dbPlane, plane);
+        let changed = false;
+        if (dbPlane.airspaces !== plane.airspaces) {
+          dbPlane.airspaces = plane.airspaces;
+          changed = true;
+        }
+        if (dbPlane.eobt !== plane.eobt) {
+          dbPlane.eobt = plane.eobt;
+          changed = true;
+        }
+
+        if (changed) {
           await dbPlane.save();
-        }*/
+        }
         dbPlanesMap.delete(plane.callsign);
       } else {
         const newPlane = new this.slotServiceModel(plane);

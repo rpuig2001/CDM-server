@@ -35,6 +35,7 @@ export class RouteService {
       for (const planedata of airspacePlaneData) {
         overflyAirspaces.push({
           airspace: planedata.airspace,
+          capacity: planedata.capacity,
           entryTime: planedata.entryTime,
           exitTime: planedata.exitTime,
         });
@@ -82,10 +83,10 @@ export class RouteService {
                 ...airway.waypointsForAirway.slice(start + 1, end),
               );
             } else {
-              console.log(`Waypoints of airway ${routeItem} not found`);
+              //console.log(`Waypoints of airway ${routeItem} not found`);
             }
           } else {
-            console.log(`Airway ${routeItem} not found`);
+            //console.log(`Airway ${routeItem} not found`);
           }
         }
       }
@@ -211,6 +212,7 @@ export class RouteService {
       );
       return {
         name: feature.properties.id,
+        capacity: feature.properties.capacity,
         boundaries: boundaries,
       };
     });
@@ -312,14 +314,17 @@ export class RouteService {
           }
         }
         if (exit != '') {
+          console.log(`${airspace.name} has capacity ${airspace.capacity}`);
           intersections.push({
             airspace: airspace.name,
+            capacity: airspace.capacity,
             entryTime: entry,
             exitTime: exit,
           });
         } else if (entry != '' && flightPath.length > 1) {
           intersections.push({
             airspace: airspace.name,
+            capacity: airspace.capacity,
             entryTime: entry,
             exitTime: flightPath[flightPath.length - 2].name,
           });
