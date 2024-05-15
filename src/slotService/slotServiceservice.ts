@@ -15,10 +15,11 @@ export class SlotService {
 
   async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
     const delayedPlanes: DelayedPlane[] = [];
-    const [waypoints, airways, airspaces] = await Promise.all([
+    const [waypoints, airways, airspaces, existingPlanes] = await Promise.all([
       this.routeService.getWaypoints(),
       this.routeService.getAirways(),
       this.routeService.getAirspaces(),
+      this.delayedPlaneService.getAllDelayedPlanes(),
     ]);
 
     let counter = 1;
@@ -31,6 +32,37 @@ export class SlotService {
         console.log(`Flightplan not available or VFR Flightplan, skipping`);
         continue;
       }
+
+      const existingPlane = existingPlanes.find((existingPlane) => {
+        return (
+          existingPlane.callsign === plane.callsign &&
+          existingPlane.departure === flight_plan.departure &&
+          existingPlane.arrival === flight_plan.arrival &&
+          existingPlane.eobt === flight_plan.deptime &&
+          existingPlane.route === flight_plan.route
+        );
+      });
+
+      if (existingPlane) {
+        console.log(`Plane already fetched, skipping`);
+        existingPlane.modify = false;
+        delayedPlanes.push(existingPlane);
+        continue;
+      }
+
+      /* IS SCHENGEN FUNCTIONALLITY DISABLED
+      const schengZone = ['BI','EB','ED','EE','EF','EH','EK','EL','EN','EP','ES','ET','EV','EY','GC','LE','LF','LG','LH','LI','LJ','LK','LM','LO','LP','LS','LZ','LD',];
+
+      const departureCode = flight_plan.departure.substring(0, 2);
+      const arrivalCode = flight_plan.departure.substring(0, 2);
+      if (
+        !schengZone.includes(departureCode) &&
+        !schengZone.includes(arrivalCode)
+      ) {
+        console.log(`Flightplan outside schengen zone, skipping`);
+        continue;
+      }
+      */
       //console.log(`Calculating route for ${plane.callsign}`);
       const myairspaces: AirspaceComplete[] =
         await this.routeService.calculateEntryExitTimes(
@@ -56,6 +88,8 @@ export class SlotService {
         reason: '',
         airspaces: myairspaces,
         isAirbone,
+        route: flight_plan.route,
+        modify: true,
       });
     }
 

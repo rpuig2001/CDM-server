@@ -35,6 +35,12 @@ export class DelayedPlane {
 
   @Prop()
   isAirbone: boolean;
+
+  @Prop()
+  route: string;
+
+  @Prop()
+  modify: boolean;
 }
 
 export const DelayedPlaneSchema = SchemaFactory.createForClass(DelayedPlane);

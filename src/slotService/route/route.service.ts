@@ -314,7 +314,7 @@ export class RouteService {
           }
         }
         if (exit != '') {
-          console.log(`${airspace.name} has capacity ${airspace.capacity}`);
+          //console.log(`${airspace.name} has capacity ${airspace.capacity}`);
           intersections.push({
             airspace: airspace.name,
             capacity: airspace.capacity,

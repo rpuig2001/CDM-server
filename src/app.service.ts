@@ -8,7 +8,7 @@ export class AppService {
     return 'CDM API';
   }
 
-  @Cron('*/10 * * * *')
+  @Cron('*/2 * * * *')
   async handleCronCalculate() {
     try {
       await axios.get(
@@ -20,13 +20,13 @@ export class AppService {
     }
   }
 
-  @Cron('*/3 * * * *')
+  @Cron('*/1 * * * *')
   async handleCronProcess() {
     try {
+      console.log(`Request sent to start calculation`);
       await axios.get(
         'https://cdm-server-production.up.railway.app/slotService/process',
       );
-      console.log(`Request sent to start calculation`);
     } catch (error) {
       console.error(`HTTP request failed: ${error.message}`);
     }
