@@ -47,7 +47,6 @@ export class DelayedPlaneService {
     for (const plane of planes) {
       const dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
-        // If a plane with the same callsign exists, check if it's different from the new data
         if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
           console.log(`Updating ${dbPlane.callsign}`);
           dbPlane.set(plane);
@@ -67,7 +66,6 @@ export class DelayedPlaneService {
     for (const plane of planes) {
       const dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
-        // Update all fields of the existing plane
         if (plane.modify) {
           console.log(`Updating aircraft ${dbPlane.callsign}`);
           await dbPlane.save();

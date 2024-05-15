@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Post, Query } from '@nestjs/common';
 import { SlotService } from './slotServiceservice';
 import { HttpService } from '@nestjs/axios';
 import { catchError } from 'rxjs/operators';
@@ -52,7 +52,10 @@ export class SlotServiceController {
 
       if (response && response.data && response.data.pilots) {
         const planes = response.data.pilots;
-        const delayedPlanes = await this.slotService.processPlanes(planes);
+        const [delayedPlanes] = await Promise.all([
+          this.slotService.processPlanes(planes),
+        ]);
+        //const delayedPlanes = await this.slotService.processPlanes(planes);
         return delayedPlanes;
       } else {
         console.error('Invalid response from source');

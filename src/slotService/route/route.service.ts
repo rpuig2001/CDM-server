@@ -25,7 +25,7 @@ export class RouteService {
         airways,
       );
 
-      const airspacePlaneData = this.calculateAirspaceIntersection(
+      const airspacePlaneData = await this.calculateAirspaceIntersection(
         airspaces,
         waypointsRoute,
         speed,
@@ -52,16 +52,39 @@ export class RouteService {
   ): Promise<Waypoint[]> {
     const routeWaypoints: Waypoint[] = [];
     const routeStringItems = await this.fixRouteString(routeString);
-    const waypointMap = new Map(
-      waypoints.map((waypoint) => [waypoint.name, waypoint]),
-    );
 
     for (let i = 0; i < routeStringItems.length; i++) {
       const routeItem = routeStringItems[i];
-      const waypoint = waypointMap.get(routeItem);
+      const foundWaypoints: Waypoint[] = [];
+      for (const w of waypoints) {
+        if (w.name === routeItem) {
+          foundWaypoints.push(w);
+        }
+      }
 
-      if (waypoint) {
-        routeWaypoints.push(waypoint);
+      if (foundWaypoints.length > 1 && routeWaypoints.length > 0) {
+        //If more than 1 wpt found, iterate around wpt checking the distance to find the closes one.
+        let distance = 99999999999999;
+        const prevWpt = routeWaypoints[routeWaypoints.length - 1];
+        let finalWpt: Waypoint = null;
+        for (const wpt of foundWaypoints) {
+          const distanceNow = await this.calculateDistanceWaypoints(
+            prevWpt.lat,
+            prevWpt.lon,
+            wpt.lat,
+            wpt.lon,
+          );
+          if (distanceNow < distance) {
+            distance = distanceNow;
+            finalWpt = wpt;
+          }
+        }
+        if (finalWpt != null) {
+          routeWaypoints.push(finalWpt);
+        }
+      } else if (foundWaypoints.length === 1) {
+        //If only 1 wpt was found, then simply use this.
+        routeWaypoints.push(foundWaypoints[0]);
       } else {
         if (i > 0 && i < routeStringItems.length - 1) {
           const airway = airways.find(
@@ -253,7 +276,10 @@ export class RouteService {
     }
   }
 
-  isWaypointInsideAirspace(waypoint: Waypoint, airspace: Airspace): boolean {
+  async isWaypointInsideAirspace(
+    waypoint: Waypoint,
+    airspace: Airspace,
+  ): Promise<boolean> {
     // Check if the airspace and its boundaries are defined
     if (!airspace || !airspace.boundaries || airspace.boundaries.length < 3) {
       console.error(
@@ -285,14 +311,18 @@ export class RouteService {
     return inside;
   }
 
-  calculateAirspaceIntersection(
+  async calculateAirspaceIntersection(
     airspaces: Airspace[],
     waypoints: Waypoint[],
     speedKnots: number,
     depTime: string,
-  ): AirspaceComplete[] {
+  ): Promise<AirspaceComplete[]> {
     //Create a temporary point during the route every minute
-    const flightPath = this.simulateFlight(waypoints, depTime, speedKnots);
+    const flightPath = await this.simulateFlight(
+      waypoints,
+      depTime,
+      speedKnots,
+    );
 
     const intersections: AirspaceComplete[] = [];
 
@@ -304,7 +334,7 @@ export class RouteService {
       );
       if (index == -1) {
         for (const point of flightPath) {
-          if (this.isWaypointInsideAirspace(point, airspace)) {
+          if (await this.isWaypointInsideAirspace(point, airspace)) {
             if (entry == '') {
               entry = point.name;
             }
@@ -335,12 +365,12 @@ export class RouteService {
     return intersections;
   }
 
-  calculateDistanceRouteParser(
+  async calculateDistanceRouteParser(
     lat1: number,
     lon1: number,
     lat2: number,
     lon2: number,
-  ): number {
+  ): Promise<number> {
     const R = 6371e3; // metres
     const φ1 = (lat1 * Math.PI) / 180; // φ, λ in radians
     const φ2 = (lat2 * Math.PI) / 180;
@@ -355,11 +385,11 @@ export class RouteService {
     return R * c; // in metres
   }
 
-  simulateFlight(
+  async simulateFlight(
     route: Waypoint[],
     departureTime: string,
     speed: number,
-  ): Waypoint[] {
+  ): Promise<Waypoint[]> {
     const flightCoordinates: Waypoint[] = [];
     let time = departureTime;
 
@@ -375,7 +405,8 @@ export class RouteService {
       );
 
       // Calculate the time it takes to reach the next waypoint based on speed
-      const timeToNextWaypoint = distanceToNextWaypoint / (speed * 0.514444); // Convert speed from knots to m/s
+      const timeToNextWaypoint =
+        (await distanceToNextWaypoint) / (speed * 0.514444); // Convert speed from knots to m/s
 
       // Generate coordinates at one-minute intervals along the route
       const numberOfSteps = Math.ceil(timeToNextWaypoint / 60); // Convert time to minutes
@@ -390,7 +421,7 @@ export class RouteService {
           lat,
           lon,
         });
-        time = this.addOneMinute(time);
+        time = await this.addOneMinute(time);
       }
     }
 
@@ -406,7 +437,7 @@ export class RouteService {
     return flightCoordinates;
   }
 
-  addOneMinute(timeString: string) {
+  async addOneMinute(timeString: string) {
     // Extract hours and minutes from the time string
     const hours = parseInt(timeString.substring(0, 2));
     const minutes = parseInt(timeString.substring(2, 4));
@@ -431,12 +462,12 @@ export class RouteService {
     return formattedHours + formattedMinutes;
   }
 
-  calculateDistanceWaypoints(
+  async calculateDistanceWaypoints(
     lat1: number,
     lon1: number,
     lat2: number,
     lon2: number,
-  ): number {
+  ): Promise<number> {
     const R = 6371e3; // metres
     const φ1 = (lat1 * Math.PI) / 180; // φ, λ in radians
     const φ2 = (lat2 * Math.PI) / 180;
@@ -449,35 +480,5 @@ export class RouteService {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c; // in metres
-  }
-
-  findClosestWaypoint(
-    location: { lat: number; lon: number },
-    waypoints: Waypoint[],
-  ): Waypoint | null {
-    if (waypoints.length === 0) return null;
-
-    let closestWaypoint = waypoints[0];
-    let minDistance = this.calculateDistanceWaypoints(
-      location.lat,
-      location.lon,
-      closestWaypoint.lat,
-      closestWaypoint.lon,
-    );
-
-    for (let i = 1; i < waypoints.length; i++) {
-      const distance = this.calculateDistanceWaypoints(
-        location.lat,
-        location.lon,
-        waypoints[i].lat,
-        waypoints[i].lon,
-      );
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestWaypoint = waypoints[i];
-      }
-    }
-
-    return closestWaypoint;
   }
 }
