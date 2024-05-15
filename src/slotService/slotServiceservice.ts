@@ -78,9 +78,9 @@ export class SlotService {
     const airspaceAll: AirspaceAll[] = [];
 
     const airspacesCapacity: AirspaceCapacity[] = [
-      { name: 'LECB', value: 999999 },
-      { name: 'LECM', value: 999999 },
-      { name: 'LECB-N', value: 5 },
+      { name: 'LECB', value: 10 },
+      { name: 'LECM', value: 10 },
+      { name: 'LECB-N', value: 4 },
     ];
 
     for (let plane of planes) {
@@ -165,7 +165,7 @@ export class SlotService {
           );
 
           //Defining maxValue defining to default value
-          let maxValue = 20;
+          let maxValue = 10;
 
           if (airspaceCapacity) {
             maxValue = airspaceCapacity.value;

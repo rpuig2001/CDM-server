@@ -32,6 +32,11 @@ export class SlotServiceController {
     );
   }
 
+  @Get('restricted')
+  findRestricted() {
+    return this.delayedPlaneService.getAllrestrictedPlanes();
+  }
+
   @Get('process')
   async getProcessedPlanes(): Promise<any[]> {
     try {

@@ -13,6 +13,10 @@ export class DelayedPlaneService {
     return await this.slotServiceModel.find().exec();
   }
 
+  async getAllrestrictedPlanes(): Promise<DelayedPlane[]> {
+    return await this.slotServiceModel.find({ ctot: { $ne: '' } }).exec();
+  }
+
   async getDelayedPlaneByCallsign(
     callsign: string,
   ): Promise<DelayedPlane | null> {
@@ -64,10 +68,10 @@ export class DelayedPlaneService {
       const dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
         // Update all fields of the existing plane
-        if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
+        /*if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
           Object.assign(dbPlane, plane);
           await dbPlane.save();
-        }
+        }*/
         dbPlanesMap.delete(plane.callsign);
       } else {
         const newPlane = new this.slotServiceModel(plane);
