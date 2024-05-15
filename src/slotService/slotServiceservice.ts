@@ -90,15 +90,15 @@ export class SlotService {
 
       if (plane.ttot != '') {
         const diff =
-          this.getTimeDifferenceInMinutes(plane.eobt, plane.ttot) - 15;
+          (await this.getTimeDifferenceInMinutes(plane.eobt, plane.ttot)) - 15;
         //Recalculate airspaces times
         if (diff != 0) {
           for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime = this.removeMinutesFromTime(
+            plane.airspaces[z].entryTime = await this.removeMinutesFromTime(
               plane.airspaces[z].entryTime,
               diff,
             );
-            plane.airspaces[z].exitTime = this.removeMinutesFromTime(
+            plane.airspaces[z].exitTime = await this.removeMinutesFromTime(
               plane.airspaces[z].exitTime,
               diff,
             );
@@ -106,7 +106,7 @@ export class SlotService {
         }
       }
 
-      plane.ttot = this.addMinutesToTime(plane.eobt, 15);
+      plane.ttot = await this.addMinutesToTime(plane.eobt, 15);
       const previousTTOT = plane.ttot;
 
       let isOverloaded = true;
@@ -188,13 +188,13 @@ export class SlotService {
             console.log(
               `${plane.callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
             );
-            plane.ttot = this.addMinutesToTime(plane.ttot, 1);
+            plane.ttot = await this.addMinutesToTime(plane.ttot, 1);
             for (let z = 0; z < plane.airspaces.length; z++) {
-              plane.airspaces[z].entryTime = this.addMinutesToTime(
+              plane.airspaces[z].entryTime = await this.addMinutesToTime(
                 plane.airspaces[z].entryTime,
                 1,
               );
-              plane.airspaces[z].exitTime = this.addMinutesToTime(
+              plane.airspaces[z].exitTime = await this.addMinutesToTime(
                 plane.airspaces[z].exitTime,
                 1,
               );
@@ -207,7 +207,11 @@ export class SlotService {
           isOverloaded = false;
 
           if (previousTTOT != plane.ttot) {
-            plane = this.modifyPlaneData(plane, plane.ttot, airspaceToFix);
+            plane = await this.modifyPlaneData(
+              plane,
+              plane.ttot,
+              airspaceToFix,
+            );
             console.log(
               `${plane.callsign} - Is regulated over ${plane.mostPenalizingAirspace}, new CTOT ${plane.ctot}`,
             );
@@ -239,20 +243,20 @@ export class SlotService {
     return delayedPlanes;
   }
 
-  private modifyPlaneData(
+  async modifyPlaneData(
     plane: DelayedPlane,
     newdeptime: string,
     airspaceToFix: AirspaceCounter,
-  ): DelayedPlane {
+  ): Promise<DelayedPlane> {
     plane.ttot = newdeptime;
     plane.ctot = newdeptime;
-    plane.delayTime = this.getDifCTOTandEOBT(newdeptime, plane.eobt);
+    plane.delayTime = await this.getDifCTOTandEOBT(newdeptime, plane.eobt);
     plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
     plane.reason = `${plane.mostPenalizingAirspace} capacity`;
     return plane;
   }
 
-  private getDifCTOTandEOBT(ctot: string, eobt: string): number {
+  async getDifCTOTandEOBT(ctot: string, eobt: string): Promise<number> {
     // Extract hours and minutes from the strings
     const ctotHours = parseInt(ctot.substring(0, 2));
     const ctotMinutes = parseInt(ctot.substring(2));
@@ -268,68 +272,7 @@ export class SlotService {
 
     return diffMinutes;
   }
-
-  private extractRouteObjectsFromRemarks(
-    remarks: string,
-    deptime: string,
-  ): AirspaceComplete[] {
-    const eetIndex: number = remarks.indexOf('EET/');
-    const routePart: string = remarks.substring(eetIndex + 4);
-    const parts: string[] = routePart.split(' ');
-    const airportCodes: string[] = parts.filter((elem) =>
-      /^[A-Z]{4}\d{4}$/.test(elem),
-    );
-
-    const objects: AirspaceComplete[] = [];
-
-    for (let i = 0; i < airportCodes.length; i++) {
-      const code = airportCodes[i];
-      const airspace = code.substring(0, 4);
-      const entryTime = this.calculateEntryExitTime(code.substring(4), deptime);
-
-      let exitTime = deptime;
-
-      if (i < airportCodes.length - 1) {
-        exitTime = this.calculateEntryExitTime(
-          airportCodes[i + 1].substring(4),
-          deptime,
-        );
-      } else {
-        exitTime = this.addMinutesToTime(entryTime, 10);
-      }
-
-      objects.push({
-        airspace,
-        entryTime,
-        exitTime,
-      });
-    }
-
-    return objects;
-  }
-
-  private calculateEntryExitTime(
-    givenArrTime: string,
-    timeDep: string,
-  ): string {
-    const givenHours = parseInt(givenArrTime.substring(0, 2));
-    const givenMinutes = parseInt(givenArrTime.substring(2, 4));
-    const depHours = parseInt(timeDep.substring(0, 2));
-    const depMinutes = parseInt(timeDep.substring(2, 4));
-    let totalHours = givenHours + depHours;
-    let totalMinutes = givenMinutes + depMinutes;
-    if (totalMinutes >= 60) {
-      totalHours += Math.floor(totalMinutes / 60);
-      totalMinutes = totalMinutes % 60;
-    }
-    totalHours = totalHours % 24;
-    const formattedHours = totalHours < 10 ? '0' + totalHours : totalHours;
-    const formattedMinutes =
-      totalMinutes < 10 ? '0' + totalMinutes : totalMinutes;
-    return `${formattedHours}${formattedMinutes}`;
-  }
-
-  private addMinutesToTime(time: string, minutesToAdd: number): string {
+  async addMinutesToTime(time: string, minutesToAdd: number): Promise<string> {
     let hours = parseInt(time.substring(0, 2));
     let minutes = parseInt(time.substring(2, 4));
     minutes += minutesToAdd;
@@ -343,7 +286,10 @@ export class SlotService {
     return `${newEntryHours}${newEntryMinutes}`;
   }
 
-  private removeMinutesFromTime(time: string, minutesToRemove: number): string {
+  async removeMinutesFromTime(
+    time: string,
+    minutesToRemove: number,
+  ): Promise<string> {
     let hours = parseInt(time.substring(0, 2));
     let minutes = parseInt(time.substring(2, 4));
     minutes -= minutesToRemove;
@@ -359,7 +305,10 @@ export class SlotService {
     return `${newEntryHours}${newEntryMinutes}`;
   }
 
-  private getTimeDifferenceInMinutes(time1: string, time2: string): number {
+  async getTimeDifferenceInMinutes(
+    time1: string,
+    time2: string,
+  ): Promise<number> {
     const hours1 = parseInt(time1.substring(0, 2));
     const minutes1 = parseInt(time1.substring(2, 4));
 
@@ -372,12 +321,12 @@ export class SlotService {
     return Math.abs(totalMinutes1 - totalMinutes2);
   }
 
-  private isBetweenEntryAndExit(
+  async isBetweenEntryAndExit(
     entryTime1: string,
     exitTime1: string,
     entryTime2: string,
     exitTime2: string,
-  ): boolean {
+  ): Promise<boolean> {
     const entryTime1Minutes = this.getMinutes(entryTime1);
     const exitTime1Minutes = this.getMinutes(exitTime1);
     const entryTime2Minutes = this.getMinutes(entryTime2);
@@ -388,7 +337,7 @@ export class SlotService {
     );
   }
 
-  private getMinutes(time: string): number {
+  async getMinutes(time: string): Promise<number> {
     const hours = parseInt(time.substring(0, 2));
     const minutes = parseInt(time.substring(2, 4));
     return hours * 60 + minutes;

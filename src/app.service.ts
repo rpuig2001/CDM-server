@@ -20,7 +20,7 @@ export class AppService {
     }
   }
 
-  @Cron('*/5 * * * *')
+  @Cron('*/3 * * * *')
   async handleCronProcess() {
     try {
       await axios.get(

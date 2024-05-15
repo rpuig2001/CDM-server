@@ -50,55 +50,42 @@ export class RouteService {
     airways: Airway[],
   ): Promise<Waypoint[]> {
     const routeWaypoints: Waypoint[] = [];
-    //Remove DCTs
     const routeStringItems = await this.fixRouteString(routeString);
+    const waypointMap = new Map(
+      waypoints.map((waypoint) => [waypoint.name, waypoint]),
+    );
 
     for (let i = 0; i < routeStringItems.length; i++) {
-      const waypointSearch = waypoints.filter(
-        (waypoint) => waypoint.name === routeStringItems[i],
-      );
-      let foundWpt;
-      if (waypointSearch.length > 1 && routeWaypoints.length > 0) {
-        const latitude = routeWaypoints[i - 1] ? routeWaypoints[i - 1].lat : 0;
-        const longitude = routeWaypoints[i - 1] ? routeWaypoints[i - 1].lon : 0;
-        foundWpt = this.findClosestWaypoint(
-          { lat: latitude, lon: longitude },
-          waypointSearch,
-        );
-      } else if (waypointSearch.length === 1) {
-        foundWpt = waypointSearch[0];
-      }
-      if (foundWpt) {
-        routeWaypoints.push(foundWpt);
+      const routeItem = routeStringItems[i];
+      const waypoint = waypointMap.get(routeItem);
+
+      if (waypoint) {
+        routeWaypoints.push(waypoint);
       } else {
         if (i > 0 && i < routeStringItems.length - 1) {
-          const airwaySearch = airways.find(
-            (airway) => airway.nameAirway === routeStringItems[i],
+          const airway = airways.find(
+            (airway) => airway.nameAirway === routeItem,
           );
-          if (airwaySearch) {
-            const index1 = airwaySearch.waypointsForAirway.findIndex(
+
+          if (airway) {
+            const index1 = airway.waypointsForAirway.findIndex(
               (item) => item.name === routeStringItems[i - 1],
             );
-            const index2 = airwaySearch.waypointsForAirway.findIndex(
+            const index2 = airway.waypointsForAirway.findIndex(
               (item) => item.name === routeStringItems[i + 1],
             );
-            if (index1 != -1 && index2 != -1) {
-              if (index1 < index2) {
-                for (let a = index1 + 1; a < index2; a++) {
-                  routeWaypoints.push(airwaySearch.waypointsForAirway[a]);
-                }
-              } else {
-                for (let a = index1 - 1; a > index1; a--) {
-                  routeWaypoints.push(airwaySearch.waypointsForAirway[a]);
-                }
-              }
-            } else {
-              console.log(
-                `Waypoints of airway ${routeStringItems[i]} not found`,
+
+            if (index1 !== -1 && index2 !== -1) {
+              const start = Math.min(index1, index2);
+              const end = Math.max(index1, index2);
+              routeWaypoints.push(
+                ...airway.waypointsForAirway.slice(start + 1, end),
               );
+            } else {
+              console.log(`Waypoints of airway ${routeItem} not found`);
             }
           } else {
-            console.log(`Airway ${routeStringItems[i]} not found`);
+            console.log(`Airway ${routeItem} not found`);
           }
         }
       }
@@ -151,7 +138,7 @@ export class RouteService {
 
     //Get airports
     src = await this.readFileFromUrl(
-      'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/icao.txt',
+      'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/Airports.txt',
     );
     const linesAirports = src.split('\n');
     linesAirports.forEach((line) => {
