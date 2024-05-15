@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { AirspaceComplete } from '../interface/airspace-complete.interface';
 
 @Schema()
 export class DelayedPlane {
@@ -15,6 +16,9 @@ export class DelayedPlane {
   eobt: string;
 
   @Prop()
+  ttot: string;
+
+  @Prop()
   ctot: string;
 
   @Prop()
@@ -25,6 +29,12 @@ export class DelayedPlane {
 
   @Prop()
   reason: string;
+
+  @Prop()
+  airspaces: AirspaceComplete[];
+
+  @Prop()
+  isAirbone: boolean;
 }
 
 export const DelayedPlaneSchema = SchemaFactory.createForClass(DelayedPlane);

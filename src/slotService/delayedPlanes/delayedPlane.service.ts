@@ -9,6 +9,10 @@ export class DelayedPlaneService {
     private readonly slotServiceModel: Model<DelayedPlane>,
   ) {}
 
+  async getAllDelayedPlanes(): Promise<DelayedPlane[]> {
+    return await this.slotServiceModel.find().exec();
+  }
+
   async getDelayedPlaneByCallsign(
     callsign: string,
   ): Promise<DelayedPlane | null> {
@@ -30,10 +34,7 @@ export class DelayedPlaneService {
   }
 
   async saveDelayedPlane(planes: DelayedPlane[]): Promise<void> {
-    // Find all planes in the database
     const allPlanes = await this.slotServiceModel.find();
-
-    // Create a map of planes from the database, using the callsign as the key
     const dbPlanesMap = new Map(
       allPlanes.map((plane) => [plane.callsign, plane]),
     );
@@ -44,24 +45,40 @@ export class DelayedPlaneService {
       if (dbPlane) {
         // If a plane with the same callsign exists, check if it's different from the new data
         if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
-          // If the plane data is different, update it
+          console.log(`Updating ${dbPlane.callsign}`);
           dbPlane.set(plane);
-          await dbPlane.save(); // Save the changes to the database
+          await dbPlane.save();
         }
-        dbPlanesMap.delete(plane.callsign); // Remove it from the map
+        dbPlanesMap.delete(plane.callsign);
+      }
+    }
+  }
+
+  async updatePlanes(planes: DelayedPlane[]): Promise<void> {
+    const allPlanes = await this.slotServiceModel.find();
+    const dbPlanesMap = new Map(
+      allPlanes.map((plane) => [plane.callsign, plane]),
+    );
+
+    for (const plane of planes) {
+      const dbPlane = dbPlanesMap.get(plane.callsign);
+      if (dbPlane) {
+        // Update all fields of the existing plane
+        if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
+          Object.assign(dbPlane, plane);
+          await dbPlane.save();
+        }
+        dbPlanesMap.delete(plane.callsign);
       } else {
-        // If no plane with the same callsign exists, create a new one
         const newPlane = new this.slotServiceModel(plane);
-        await newPlane.save(); // Save the new plane to the database
+        await newPlane.save();
       }
     }
 
-    // Any remaining planes in the map exist in the database but not in the passed list, so delete them
     const deletePromises = Array.from(dbPlanesMap.values()).map((dbPlane) =>
       this.slotServiceModel.deleteOne({ _id: dbPlane._id }),
     );
 
-    // Wait for all delete promises to complete
     await Promise.all(deletePromises);
   }
 }

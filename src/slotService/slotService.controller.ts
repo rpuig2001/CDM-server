@@ -4,6 +4,7 @@ import { HttpService } from '@nestjs/axios';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
+import { RouteService } from './route/route.service';
 
 @Controller('slotService')
 export class SlotServiceController {
@@ -11,6 +12,7 @@ export class SlotServiceController {
     private readonly slotService: SlotService,
     private readonly httpService: HttpService,
     private readonly delayedPlaneService: DelayedPlaneService,
+    private readonly routeService: RouteService,
   ) {}
 
   @Get('callsign')
@@ -30,8 +32,8 @@ export class SlotServiceController {
     );
   }
 
-  @Get('calculate')
-  async getDelayedPlanes(): Promise<any[]> {
+  @Get('process')
+  async getProcessedPlanes(): Promise<any[]> {
     try {
       const response = await this.httpService
         .get('https://data.vatsim.net/v3/vatsim-data.json')
@@ -45,7 +47,7 @@ export class SlotServiceController {
 
       if (response && response.data && response.data.pilots) {
         const planes = response.data.pilots;
-        const delayedPlanes = await this.slotService.delayPlanes(planes);
+        const delayedPlanes = await this.slotService.processPlanes(planes);
         return delayedPlanes;
       } else {
         console.error('Invalid response from source');
@@ -55,5 +57,13 @@ export class SlotServiceController {
       console.error('Error fetching delayed planes:', error);
       return [];
     }
+  }
+
+  @Get('calculate')
+  async getDelayedPlanes(): Promise<any[]> {
+    const delayedPlanes = await this.slotService.delayPlanes(
+      await this.delayedPlaneService.getAllDelayedPlanes(),
+    );
+    return delayedPlanes;
   }
 }

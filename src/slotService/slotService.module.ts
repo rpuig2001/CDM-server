@@ -7,6 +7,7 @@ import { VatsimDataService } from './vatsim/vatsim-data.service'; // Import Vats
 import { HttpModule } from '@nestjs/axios';
 import { DatabaseModule } from 'src/database/database.module';
 import { SlotServiceProviders } from './slotService.providers';
+import { RouteService } from './route/route.service';
 
 @Module({
   imports: [HttpModule, DatabaseModule],
@@ -17,6 +18,7 @@ import { SlotServiceProviders } from './slotService.providers';
     DelayedPlaneService,
     AirspaceService,
     VatsimDataService,
+    RouteService,
   ],
 })
 export class SlotServiceModule {}

@@ -5,45 +5,112 @@ import { AirspaceCounter } from './interface/airspace-counter.interface';
 import { AirspaceComplete } from './interface/airspace-complete.interface';
 import { DelayedPlane } from './delayedPlanes/delayedPlane.model';
 import { AirspaceCapacity } from './airspaceCapacity/airspaceCapacity.model';
+import { RouteService } from './route/route.service';
 
 @Injectable()
 export class SlotService {
-  constructor(private readonly delayedPlaneService: DelayedPlaneService) {}
+  constructor(
+    private readonly delayedPlaneService: DelayedPlaneService,
+    private readonly routeService: RouteService,
+  ) {}
 
-  async delayPlanes(planes: any[]): Promise<DelayedPlane[]> {
+  async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
+    const delayedPlanes: DelayedPlane[] = [];
+    const waypoints = await this.routeService.getWaypoints();
+    const airways = await this.routeService.getAirways();
+    const airspaces = await this.routeService.getAirspaces();
+
+    for (const plane of planes) {
+      const { flight_plan } = plane;
+
+      if (flight_plan == null || flight_plan.flight_rules == 'V') {
+        console.log(`Flightplan not available or VFR Flightplan, skipping`);
+        continue;
+      }
+      console.log(`Calculating route for ${plane.callsign}`);
+      let myairspaces: AirspaceComplete[] = [];
+      myairspaces = await this.routeService.calculateEntryExitTimes(
+        flight_plan.departure +
+          ' ' +
+          flight_plan.route +
+          ' ' +
+          flight_plan.arrival,
+        flight_plan.deptime,
+        flight_plan.cruise_tas,
+        waypoints,
+        airways,
+        airspaces,
+      );
+      console.log(`Finished calculation`);
+
+      let isAirbone = false;
+      if (plane.groundspeed > 80) {
+        isAirbone = true;
+      }
+
+      delayedPlanes.push({
+        callsign: plane.callsign,
+        departure: flight_plan.departure,
+        arrival: flight_plan.arrival,
+        eobt: flight_plan.deptime,
+        ttot: '',
+        ctot: '',
+        delayTime: 0,
+        mostPenalizingAirspace: '',
+        reason: '',
+        airspaces: myairspaces,
+        isAirbone: isAirbone,
+      });
+    }
+
+    try {
+      await this.delayedPlaneService.updatePlanes(delayedPlanes);
+      console.log(`Data saved to DB`);
+    } catch (error) {
+      console.log(`ERROR saving to DB`, error);
+    }
+
+    return delayedPlanes;
+  }
+
+  async delayPlanes(planes: DelayedPlane[]): Promise<DelayedPlane[]> {
     const delayedPlanes: DelayedPlane[] = [];
     const airspaceAll: AirspaceAll[] = [];
 
     const airspacesCapacity: AirspaceCapacity[] = [
-      { name: 'LECB', value: 10 },
-      { name: 'LECM', value: 10 },
-      { name: 'EDUU', value: 15 },
-      { name: 'LFFF', value: 15 },
-      { name: 'LOVV"', value: 10 },
-      { name: 'EGTT', value: 10 },
-      { name: 'EDVV', value: 10 },
-      { name: 'CZQX', value: 10 },
+      { name: 'LECB', value: 999999 },
+      { name: 'LECM', value: 999999 },
+      { name: 'LECB-N', value: 5 },
     ];
 
-    for (const plane of planes) {
-      const { callsign, flight_plan } = plane;
-      const delayedPlane = new DelayedPlane();
-
+    for (let plane of planes) {
       console.log(
-        `---------- This is the start of the log for ${callsign} ----------`,
+        `---------- This is the start of the log for ${plane.callsign} ----------`,
       );
 
-      if (flight_plan == null || flight_plan.flight_rules == 'V') {
-        console.log(`Flightplan not available or VFR Flightplan, skipping`);
-        console.log(
-          `----------------- Finshed processing ${callsign} -----------------`,
-        );
-        continue;
+      if (plane.ttot != '') {
+        const diff =
+          this.getTimeDifferenceInMinutes(plane.eobt, plane.ttot) - 15;
+        //Recalculate airspaces times
+        if (diff != 0) {
+          for (let z = 0; z < plane.airspaces.length; z++) {
+            plane.airspaces[z].entryTime = this.removeMinutesFromTime(
+              plane.airspaces[z].entryTime,
+              diff,
+            );
+            plane.airspaces[z].exitTime = this.removeMinutesFromTime(
+              plane.airspaces[z].exitTime,
+              diff,
+            );
+          }
+        }
       }
 
-      let newdeptime = flight_plan.deptime;
+      plane.ttot = this.addMinutesToTime(plane.eobt, 15);
+      const previousTTOT = plane.ttot;
+
       let isOverloaded = true;
-      let myairspaces: AirspaceComplete[];
+      const myairspaces: AirspaceComplete[] = plane.airspaces;
       const airspaceToFix: AirspaceCounter = {
         airspaceName: '',
         counter: 0,
@@ -51,14 +118,10 @@ export class SlotService {
 
       while (isOverloaded) {
         const counterArray: AirspaceCounter[] = [];
-        myairspaces = this.extractRouteObjectsFromRemarks(
-          flight_plan.remarks,
-          newdeptime,
-        );
 
         for (const myairspace of myairspaces) {
           console.log(
-            `${callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`,
+            `${plane.callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`,
           );
           let counter = 0;
 
@@ -79,7 +142,7 @@ export class SlotService {
                   )
                 ) {
                   console.log(
-                    `${callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
+                    `${plane.callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
                   );
                   counter++;
                 }
@@ -102,7 +165,7 @@ export class SlotService {
           );
 
           //Defining maxValue defining to default value
-          let maxValue = 5;
+          let maxValue = 20;
 
           if (airspaceCapacity) {
             maxValue = airspaceCapacity.value;
@@ -117,57 +180,40 @@ export class SlotService {
         }
 
         if (airspaceToFix.counter > 0) {
-          const now = new Date();
-          const fifteenMinutes = 15 * 60 * 1000;
-          const timedep = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            parseInt(flight_plan.deptime.substring(0, 2)),
-            parseInt(flight_plan.deptime.substring(2)),
-          );
-          const fifteenMinutesFromNow = new Date(
-            now.getTime() + fifteenMinutes,
-          );
-
-          if (timedep.getTime() > fifteenMinutesFromNow.getTime()) {
+          if (plane.isAirbone) {
+            console.log(`Skipping ${plane.callsign} is already airbone`);
             isOverloaded = false;
-            console.log(
-              `${callsign} - Skipping depTime ${timedep} is in the past`,
-            );
           } else {
             isOverloaded = true;
             console.log(
-              `${callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
+              `${plane.callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
             );
-            newdeptime = this.addMinutesToTime(newdeptime, 1);
+            plane.ttot = this.addMinutesToTime(plane.ttot, 1);
+            for (let z = 0; z < plane.airspaces.length; z++) {
+              plane.airspaces[z].entryTime = this.addMinutesToTime(
+                plane.airspaces[z].entryTime,
+                1,
+              );
+              plane.airspaces[z].exitTime = this.addMinutesToTime(
+                plane.airspaces[z].exitTime,
+                1,
+              );
+            }
             console.log(
-              `${callsign} - New CTOT ${newdeptime} re-calculating...`,
+              `${plane.callsign} - New CTOT ${plane.ttot} re-calculating...`,
             );
           }
         } else {
           isOverloaded = false;
 
-          if (newdeptime != flight_plan.deptime) {
-            delayedPlane.callsign = callsign;
-            delayedPlane.departure = flight_plan.departure;
-            delayedPlane.arrival = flight_plan.arrival;
-            delayedPlane.eobt = flight_plan.deptime;
-            delayedPlane.ctot = newdeptime;
-            delayedPlane.delayTime = this.getDifCTOTandEOBT(
-              newdeptime,
-              flight_plan.deptime,
-            );
-            delayedPlane.mostPenalizingAirspace = airspaceToFix.airspaceName;
-            delayedPlane.reason = `${delayedPlane.mostPenalizingAirspace} capacity`;
-
+          if (previousTTOT != plane.ttot) {
+            plane = this.modifyPlaneData(plane, plane.ttot, airspaceToFix);
             console.log(
-              `${callsign} - Is regulated over ${delayedPlane.mostPenalizingAirspace}, new CTOT ${delayedPlane.ctot}`,
+              `${plane.callsign} - Is regulated over ${plane.mostPenalizingAirspace}, new CTOT ${plane.ctot}`,
             );
-
-            delayedPlanes.push(delayedPlane);
+            delayedPlanes.push(plane);
           } else {
-            console.log(`${callsign} - Is not regulated regulated`);
+            console.log(`${plane.callsign} - Is not regulated regulated`);
           }
         }
       }
@@ -179,22 +225,31 @@ export class SlotService {
       airspaceAll.push(airspaceAllElement);
 
       console.log(
-        `----------------- Finshed processing ${callsign} -----------------`,
+        `----------------- Finshed processing ${plane.callsign} -----------------`,
       );
     }
 
     try {
-      await this.delayedPlaneService.saveDelayedPlane(delayedPlanes);
+      await this.delayedPlaneService.saveDelayedPlane(planes);
       console.log(`Data saved to DB`);
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
     }
 
-    delayedPlanes.sort((a, b) =>
-      a.mostPenalizingAirspace.localeCompare(b.mostPenalizingAirspace),
-    );
-
     return delayedPlanes;
+  }
+
+  private modifyPlaneData(
+    plane: DelayedPlane,
+    newdeptime: string,
+    airspaceToFix: AirspaceCounter,
+  ): DelayedPlane {
+    plane.ttot = newdeptime;
+    plane.ctot = newdeptime;
+    plane.delayTime = this.getDifCTOTandEOBT(newdeptime, plane.eobt);
+    plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
+    plane.reason = `${plane.mostPenalizingAirspace} capacity`;
+    return plane;
   }
 
   private getDifCTOTandEOBT(ctot: string, eobt: string): number {
@@ -286,6 +341,35 @@ export class SlotService {
     const newEntryHours = hours < 10 ? '0' + hours : hours;
     const newEntryMinutes = minutes < 10 ? '0' + minutes : minutes;
     return `${newEntryHours}${newEntryMinutes}`;
+  }
+
+  private removeMinutesFromTime(time: string, minutesToRemove: number): string {
+    let hours = parseInt(time.substring(0, 2));
+    let minutes = parseInt(time.substring(2, 4));
+    minutes -= minutesToRemove;
+    if (minutes < 0) {
+      hours -= Math.ceil(Math.abs(minutes) / 60);
+      minutes = 60 + (minutes % 60);
+    }
+    if (hours < 0) {
+      hours = 24 + (hours % 24);
+    }
+    const newEntryHours = hours < 10 ? '0' + hours : hours;
+    const newEntryMinutes = minutes < 10 ? '0' + minutes : minutes;
+    return `${newEntryHours}${newEntryMinutes}`;
+  }
+
+  private getTimeDifferenceInMinutes(time1: string, time2: string): number {
+    const hours1 = parseInt(time1.substring(0, 2));
+    const minutes1 = parseInt(time1.substring(2, 4));
+
+    const hours2 = parseInt(time2.substring(0, 2));
+    const minutes2 = parseInt(time2.substring(2, 4));
+
+    const totalMinutes1 = hours1 * 60 + minutes1;
+    const totalMinutes2 = hours2 * 60 + minutes2;
+
+    return Math.abs(totalMinutes1 - totalMinutes2);
   }
 
   private isBetweenEntryAndExit(
