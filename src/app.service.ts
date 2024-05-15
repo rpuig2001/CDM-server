@@ -9,23 +9,14 @@ export class AppService {
   }
 
   @Cron('*/2 * * * *')
-  async handleCronCalculate() {
-    try {
-      await axios.get(
-        'https://cdm-server-production.up.railway.app/slotService/calculate',
-      );
-      console.log(`Request sent to start calculation`);
-    } catch (error) {
-      console.error(`HTTP request failed: ${error.message}`);
-    }
-  }
-
-  @Cron('*/1 * * * *')
   async handleCronProcess() {
     try {
       console.log(`Request sent to start calculation`);
       await axios.get(
         'https://cdm-server-production.up.railway.app/slotService/process',
+      );
+      await axios.get(
+        'https://cdm-server-production.up.railway.app/slotService/calculate',
       );
     } catch (error) {
       console.error(`HTTP request failed: ${error.message}`);
