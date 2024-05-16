@@ -16,10 +16,13 @@ export class DelayedPlane {
   eobt: string;
 
   @Prop()
-  ttot: string;
+  tsat: string;
 
   @Prop()
   ctot: string;
+
+  @Prop()
+  taxi: number;
 
   @Prop()
   delayTime: number;
@@ -41,6 +44,9 @@ export class DelayedPlane {
 
   @Prop()
   modify: boolean;
+
+  @Prop()
+  cdm: boolean;
 }
 
 export const DelayedPlaneSchema = SchemaFactory.createForClass(DelayedPlane);

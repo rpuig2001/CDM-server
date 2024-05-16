@@ -17,6 +17,24 @@ export class DelayedPlaneService {
     return await this.slotServiceModel.find({ ctot: { $ne: '' } }).exec();
   }
 
+  async setCDM_TTOT(
+    callsign: string,
+    taxi: number,
+    tsat: string,
+  ): Promise<DelayedPlane> {
+    const plane = await this.slotServiceModel.findOne({ callsign }).exec();
+    if (plane && tsat.length === 4) {
+      plane.cdm = true;
+      plane.tsat = tsat;
+      plane.taxi = taxi;
+      plane.modify = true;
+      await plane.save();
+      return plane;
+    } else {
+      return null;
+    }
+  }
+
   async getDelayedPlaneByCallsign(
     callsign: string,
   ): Promise<DelayedPlane | null> {
@@ -68,6 +86,8 @@ export class DelayedPlaneService {
       if (dbPlane) {
         if (plane.modify) {
           console.log(`Updating aircraft ${dbPlane.callsign}`);
+          plane.modify = false;
+          dbPlane.set(plane);
           await dbPlane.save();
         }
         dbPlanesMap.delete(plane.callsign);
@@ -79,7 +99,7 @@ export class DelayedPlaneService {
     }
 
     const deletePromises = Array.from(dbPlanesMap.values()).map((dbPlane) =>
-      this.slotServiceModel.deleteOne({ _id: dbPlane._id }),
+      this.slotServiceModel.deleteOne({ callsign: dbPlane.callsign }),
     );
 
     await Promise.all(deletePromises);

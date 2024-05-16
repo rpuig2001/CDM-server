@@ -32,6 +32,15 @@ export class SlotServiceController {
     );
   }
 
+  @Post('cdm')
+  setQueryToRemoveMaster(
+    @Query('callsign') callsign: string,
+    @Query('taxi') taxi: number,
+    @Query('tsat') tsat: string,
+  ) {
+    return this.delayedPlaneService.setCDM_TTOT(callsign, taxi, tsat);
+  }
+
   @Get('restricted')
   findRestricted() {
     return this.delayedPlaneService.getAllrestrictedPlanes();
