@@ -256,7 +256,7 @@ export class SlotService {
     plane.ttot = newdeptime;
 
     if (airspaceToFix === null) {
-      plane.ctot = newdeptime;
+      plane.ctot = '';
       plane.delayTime = 0;
       plane.mostPenalizingAirspace = '';
       plane.reason = '';
