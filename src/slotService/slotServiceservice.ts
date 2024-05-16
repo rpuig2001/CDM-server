@@ -24,6 +24,7 @@ export class SlotService {
 
     let counter = 1;
     for (const plane of planes) {
+      await new Promise((resolve) => setImmediate(resolve));
       const { flight_plan } = plane;
       console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
@@ -49,20 +50,6 @@ export class SlotService {
         delayedPlanes.push(existingPlane);
         continue;
       }
-
-      /* IS SCHENGEN FUNCTIONALLITY DISABLED
-      const schengZone = ['BI','EB','ED','EE','EF','EH','EK','EL','EN','EP','ES','ET','EV','EY','GC','LE','LF','LG','LH','LI','LJ','LK','LM','LO','LP','LS','LZ','LD',];
-
-      const departureCode = flight_plan.departure.substring(0, 2);
-      const arrivalCode = flight_plan.departure.substring(0, 2);
-      if (
-        !schengZone.includes(departureCode) &&
-        !schengZone.includes(arrivalCode)
-      ) {
-        console.log(`Flightplan outside schengen zone, skipping`);
-        continue;
-      }
-      */
       //console.log(`Calculating route for ${plane.callsign}`);
       const myairspaces: AirspaceComplete[] =
         await this.routeService.calculateEntryExitTimes(
@@ -110,6 +97,7 @@ export class SlotService {
 
     let counter = 1;
     for (let plane of planes) {
+      await new Promise((resolve) => setImmediate(resolve));
       console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
@@ -142,6 +130,7 @@ export class SlotService {
       };
 
       while (isOverloaded) {
+        await new Promise((resolve) => setImmediate(resolve));
         const counterArray: AirspaceCounter[] = [];
 
         for (const myairspace of myairspaces) {
