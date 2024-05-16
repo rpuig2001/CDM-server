@@ -221,6 +221,7 @@ export class SlotService {
             );
             delayedPlanes.push(plane);
           } else {
+            plane = this.modifyPlaneData(plane, plane.ttot, null);
             //console.log(`${plane.callsign} - Is not regulated regulated`);
           }
         }
@@ -253,10 +254,18 @@ export class SlotService {
     airspaceToFix: AirspaceCounter,
   ): DelayedPlane {
     plane.ttot = newdeptime;
-    plane.ctot = newdeptime;
-    plane.delayTime = this.getDifCTOTandEOBT(newdeptime, plane.eobt);
-    plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
-    plane.reason = `${plane.mostPenalizingAirspace} capacity`;
+
+    if (airspaceToFix === null) {
+      plane.ctot = newdeptime;
+      plane.delayTime = 0;
+      plane.mostPenalizingAirspace = '';
+      plane.reason = '';
+    } else {
+      plane.ctot = newdeptime;
+      plane.delayTime = this.getDifCTOTandEOBT(newdeptime, plane.eobt);
+      plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
+      plane.reason = `${plane.mostPenalizingAirspace} capacity`;
+    }
     return plane;
   }
 
