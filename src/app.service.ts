@@ -12,10 +12,10 @@ export class AppService {
   async handleCronProcess() {
     try {
       console.log(`Request sent to start calculation`);
-      await axios.get(
+      await axios.post(
         'https://cdm-server-production.up.railway.app/slotService/process',
       );
-      await axios.get(
+      await axios.post(
         'https://cdm-server-production.up.railway.app/slotService/calculate',
       );
     } catch (error) {

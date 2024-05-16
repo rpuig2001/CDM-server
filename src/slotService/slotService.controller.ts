@@ -37,7 +37,7 @@ export class SlotServiceController {
     return this.delayedPlaneService.getAllrestrictedPlanes();
   }
 
-  @Get('process')
+  @Post('process')
   async getProcessedPlanes(): Promise<string> {
     try {
       const response = await this.httpService
@@ -64,7 +64,7 @@ export class SlotServiceController {
     }
   }
 
-  @Get('calculate')
+  @Post('calculate')
   async getDelayedPlanes(): Promise<string> {
     this.slotService.delayPlanes(
       await this.delayedPlaneService.getAllDelayedPlanes(),
