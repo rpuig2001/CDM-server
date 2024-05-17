@@ -65,4 +65,11 @@ export class HelperService {
       return time1 > time2;
     }
   }
+
+  getCurrentUTCTime() {
+    const now = new Date();
+    const hours = now.getUTCHours().toString().padStart(2, '0');
+    const minutes = now.getUTCMinutes().toString().padStart(2, '0');
+    return hours + minutes;
+}
 }

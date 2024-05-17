@@ -48,36 +48,11 @@ export class DelayedPlaneService {
         plane.taxi = taxi;
 
         //Update airspace times
-        const diff = this.helperService.getTimeDifferenceInMinutes(
-          previousTTOT,
+        plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
+          plane.airspaces,
           this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+          previousTTOT,
         );
-
-        if (diff > 0) {
-          for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime = this.helperService.addMinutesToTime(
-              plane.airspaces[z].entryTime,
-              diff,
-            );
-            plane.airspaces[z].exitTime = this.helperService.addMinutesToTime(
-              plane.airspaces[z].exitTime,
-              diff,
-            );
-          }
-        } else if (diff != 0) {
-          for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime =
-              this.helperService.removeMinutesFromTime(
-                plane.airspaces[z].entryTime,
-                Math.abs(diff),
-              );
-            plane.airspaces[z].exitTime =
-              this.helperService.removeMinutesFromTime(
-                plane.airspaces[z].exitTime,
-                Math.abs(diff),
-              );
-          }
-        }
         //get Airspaces data
         const airspacesWorkload =
           await this.slotServiceService.getAirspacesWorkload(plane.callsign);
@@ -110,38 +85,12 @@ export class DelayedPlaneService {
           plane.eobt,
           plane.taxi,
         );
-        const diff = this.helperService.getTimeDifferenceInMinutes(
-          previousTTOT,
+        plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
+          plane.airspaces,
           actualTTOT,
+          previousTTOT,
         );
 
-        if (
-          this.helperService.isTime1GreaterThanTime2(actualTTOT, previousTTOT)
-        ) {
-          for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime = this.helperService.addMinutesToTime(
-              plane.airspaces[z].entryTime,
-              diff,
-            );
-            plane.airspaces[z].exitTime = this.helperService.addMinutesToTime(
-              plane.airspaces[z].exitTime,
-              diff,
-            );
-          }
-        } else if (diff != 0) {
-          for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime =
-              this.helperService.removeMinutesFromTime(
-                plane.airspaces[z].entryTime,
-                diff,
-              );
-            plane.airspaces[z].exitTime =
-              this.helperService.removeMinutesFromTime(
-                plane.airspaces[z].exitTime,
-                diff,
-              );
-          }
-        }
         //get Airspaces data
         const airspacesWorkload =
           await this.slotServiceService.getAirspacesWorkload(plane.callsign);
@@ -223,6 +172,7 @@ export class DelayedPlaneService {
         dbPlanesMap.delete(plane.callsign);
       } else {
         console.log(`Saving aircraft ${plane.callsign}`);
+        plane.modify = false;
         const newPlane = new this.slotServiceModel(plane);
         await newPlane.save();
       }

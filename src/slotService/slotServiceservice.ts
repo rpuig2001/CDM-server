@@ -51,20 +51,30 @@ export class SlotService {
       if (existingPlane) {
         if (isAirbone == true && existingPlane.isAirbone != isAirbone) {
           //Set automatically airbone
+          console.log(`${existingPlane.callsign} just departed, updating`);
           existingPlane.isAirbone = true;
           existingPlane.modify = true;
+          const previousTTOT = this.helperService.addMinutesToTime(
+            existingPlane.eobt,
+            existingPlane.taxi,
+          );
           if (!existingPlane.cdm) {
             existingPlane.eobt = this.helperService.removeMinutesFromTime(
-              existingPlane.eobt,
+              this.helperService.getCurrentUTCTime(),
               existingPlane.taxi,
             );
           }
+          const actualTTOT = this.helperService.addMinutesToTime(
+            existingPlane.eobt,
+            existingPlane.taxi,
+          );
+          existingPlane.airspaces = await this.moveTimesOfAirspace(
+            existingPlane.airspaces,
+            actualTTOT,
+            previousTTOT,
+          );
           delayedPlanes.push(existingPlane);
-        } else if (existingPlane.eobt != flight_plan.deptime) {
-          //Update EOBT when pilot updates flightplan's EOBT
-          existingPlane.eobt = flight_plan.deptime;
-          existingPlane.modify = true;
-          delayedPlanes.push(existingPlane);
+          continue;
         } else {
           if (existingPlane.cdm) {
             console.log(`Plane controlled by CDM, skipping`);
@@ -331,6 +341,42 @@ export class SlotService {
     }
 
     return delayedPlanes;
+  }
+
+  async moveTimesOfAirspace(
+    airspaces: AirspaceComplete[],
+    actualTTOT: string,
+    previousTTOT: string,
+  ): Promise<AirspaceComplete[]> {
+    const diff = this.helperService.getTimeDifferenceInMinutes(
+      previousTTOT,
+      actualTTOT,
+    );
+
+    if (this.helperService.isTime1GreaterThanTime2(actualTTOT, previousTTOT)) {
+      for (let z = 0; z < airspaces.length; z++) {
+        airspaces[z].entryTime = this.helperService.addMinutesToTime(
+          airspaces[z].entryTime,
+          diff,
+        );
+        airspaces[z].exitTime = this.helperService.addMinutesToTime(
+          airspaces[z].exitTime,
+          diff,
+        );
+      }
+    } else if (diff != 0) {
+      for (let z = 0; z < airspaces.length; z++) {
+        airspaces[z].entryTime = this.helperService.removeMinutesFromTime(
+          airspaces[z].entryTime,
+          diff,
+        );
+        airspaces[z].exitTime = this.helperService.removeMinutesFromTime(
+          airspaces[z].exitTime,
+          diff,
+        );
+      }
+    }
+    return airspaces;
   }
 
   private modifyPlaneData(
