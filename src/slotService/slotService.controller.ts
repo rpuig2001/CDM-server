@@ -38,7 +38,7 @@ export class SlotServiceController {
     @Query('taxi') taxi: number,
     @Query('tsat') tsat: string,
   ) {
-    return this.delayedPlaneService.setCDM_TTOT(callsign, taxi, tsat);
+    return this.delayedPlaneService.setCDM_TSAT(callsign, taxi, tsat);
   }
 
   @Get('restricted')

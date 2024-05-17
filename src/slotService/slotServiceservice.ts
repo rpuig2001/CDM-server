@@ -1,16 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
 import { RouteService } from './route/route.service';
 import { DelayedPlane } from './delayedPlanes/delayedPlane.model';
 import { AirspaceAll } from './interface/airspaces-all.interface';
 import { AirspaceCounter } from './interface/airspace-counter.interface';
 import { AirspaceComplete } from './interface/airspace-complete.interface';
+import { HelperService } from './helper/helper.service';
 
 @Injectable()
 export class SlotService {
   constructor(
+    @Inject(forwardRef(() => DelayedPlaneService))
     private readonly delayedPlaneService: DelayedPlaneService,
     private readonly routeService: RouteService,
+    private readonly helperService: HelperService,
   ) {}
 
   async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
@@ -44,19 +47,12 @@ export class SlotService {
         );
       });
 
-      let isCDM = false;
-      let tempTSAT = this.addMinutesToTime(flight_plan.deptime, 15);
-
       if (existingPlane) {
-        if (existingPlane.cdm && !existingPlane.modify) {
+        if (existingPlane.cdm) {
           console.log(`Plane controlled by CDM, skipping`);
           existingPlane.modify = false;
           delayedPlanes.push(existingPlane);
           continue;
-        } else if (existingPlane.cdm && existingPlane.modify) {
-          console.log(`Plane to be modified by tsat`);
-          isCDM = true;
-          tempTSAT = existingPlane.tsat;
         } else {
           console.log(`Plane already fetched, skipping`);
           existingPlane.modify = false;
@@ -69,36 +65,31 @@ export class SlotService {
       const myairspaces: AirspaceComplete[] =
         await this.routeService.calculateEntryExitTimes(
           `${flight_plan.departure} ${flight_plan.route} ${flight_plan.arrival}`,
-          tempTSAT,
+          this.helperService.addMinutesToTime(flight_plan.deptime, 15),
           flight_plan.cruise_tas,
           waypoints,
           airways,
           airspaces,
         );
 
-      if (existingPlane && isCDM) {
-        existingPlane.airspaces = myairspaces;
-        delayedPlanes.push(existingPlane);
-      } else {
-        const isAirbone = plane.groundspeed > 80;
-        delayedPlanes.push({
-          callsign: plane.callsign,
-          departure: flight_plan.departure,
-          arrival: flight_plan.arrival,
-          eobt: flight_plan.deptime,
-          tsat: '',
-          ctot: '',
-          taxi: 15,
-          delayTime: 0,
-          mostPenalizingAirspace: '',
-          reason: '',
-          airspaces: myairspaces,
-          isAirbone,
-          route: flight_plan.route,
-          modify: true,
-          cdm: false,
-        });
-      }
+      const isAirbone = plane.groundspeed > 80;
+      delayedPlanes.push({
+        callsign: plane.callsign,
+        departure: flight_plan.departure,
+        arrival: flight_plan.arrival,
+        eobt: flight_plan.deptime,
+        tsat: '',
+        ctot: '',
+        taxi: 15,
+        delayTime: 0,
+        mostPenalizingAirspace: '',
+        reason: '',
+        airspaces: myairspaces,
+        isAirbone,
+        route: flight_plan.route,
+        modify: true,
+        cdm: false,
+      });
     }
 
     try {
@@ -111,10 +102,144 @@ export class SlotService {
     return delayedPlanes;
   }
 
+  async getAirspacesWorkload(callsign: string): Promise<AirspaceAll[]> {
+    const planes = await this.delayedPlaneService.getAllDelayedPlanes();
+    const airspaceAll: AirspaceAll[] = [];
+
+    for (const foundPlane of planes) {
+      if (foundPlane.callsign != callsign && callsign != '') {
+        airspaceAll.push({
+          airspaces: foundPlane.airspaces,
+        });
+      }
+    }
+    return airspaceAll;
+  }
+
+  async calculatePlane(
+    plane: DelayedPlane,
+    tempTTOT: string,
+    airspaceAll: AirspaceAll[],
+  ): Promise<DelayedPlane> {
+    const increaseFreq = 5;
+
+    let newTakeOffTime = tempTTOT;
+    const previousTakeOffTime = newTakeOffTime;
+
+    let isOverloaded = true;
+    const myairspaces: AirspaceComplete[] = plane.airspaces;
+    const airspaceToFix: AirspaceCounter = {
+      airspaceName: '',
+      airspaceCapacity: null,
+      counter: 0,
+    };
+
+    while (isOverloaded) {
+      await new Promise((resolve) => setImmediate(resolve));
+      const counterArray: AirspaceCounter[] = [];
+
+      for (const myairspace of myairspaces) {
+        /*console.log(
+            `${plane.callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`,
+          );*/
+        let counter = 0;
+
+        for (const au of airspaceAll) {
+          for (const airspace of au.airspaces) {
+            if (airspace.airspace === myairspace.airspace) {
+              const entryTime1 = myairspace.entryTime;
+              const exitTime1 = myairspace.exitTime;
+              const entryTime2 = airspace.entryTime;
+              const exitTime2 = airspace.exitTime;
+
+              if (
+                this.isBetweenEntryAndExit(
+                  entryTime1,
+                  exitTime1,
+                  entryTime2,
+                  exitTime2,
+                )
+              ) {
+                /*console.log(
+                    `${plane.callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
+                  );*/
+                counter++;
+              }
+            }
+          }
+        }
+
+        const counterObj: AirspaceCounter = {
+          airspaceName: myairspace.airspace,
+          airspaceCapacity: myairspace.capacity,
+          counter,
+        };
+        counterArray.push(counterObj);
+      }
+
+      airspaceToFix.counter = 0;
+
+      for (const airspaceCounter of counterArray) {
+        if (airspaceCounter.counter > airspaceCounter.airspaceCapacity) {
+          if (
+            airspaceCounter.counter - airspaceCounter.airspaceCapacity >
+            airspaceToFix.counter
+          ) {
+            airspaceToFix.counter =
+              airspaceCounter.counter - airspaceCounter.airspaceCapacity;
+            airspaceToFix.airspaceName = airspaceCounter.airspaceName;
+          }
+        }
+      }
+
+      if (airspaceToFix.counter > 0) {
+        if (plane.isAirbone && !plane.cdm) {
+          console.log(`Skipping ${plane.callsign} is already airborne`);
+          isOverloaded = false;
+        } else {
+          isOverloaded = true;
+          console.log(
+            `${plane.callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
+          );
+          newTakeOffTime = this.helperService.addMinutesToTime(
+            newTakeOffTime,
+            increaseFreq,
+          );
+          for (let z = 0; z < plane.airspaces.length; z++) {
+            plane.airspaces[z].entryTime = this.helperService.addMinutesToTime(
+              plane.airspaces[z].entryTime,
+              increaseFreq,
+            );
+            plane.airspaces[z].exitTime = this.helperService.addMinutesToTime(
+              plane.airspaces[z].exitTime,
+              increaseFreq,
+            );
+          }
+          console.log(
+            `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
+          );
+        }
+      } else {
+        isOverloaded = false;
+
+        if (previousTakeOffTime !== newTakeOffTime) {
+          plane = this.modifyPlaneData(plane, newTakeOffTime, airspaceToFix);
+          console.log(
+            `${plane.callsign} - Is regulated over ${plane.mostPenalizingAirspace}, new CTOT ${plane.ctot}`,
+          );
+        } else {
+          plane = this.modifyPlaneData(plane, newTakeOffTime, null);
+          //console.log(`${plane.callsign} - Is not regulated regulated`);
+        }
+      }
+    }
+    return plane;
+  }
+
   async delayPlanes(planes: DelayedPlane[]): Promise<DelayedPlane[]> {
     const delayedPlanes: DelayedPlane[] = [];
     const airspaceAll: AirspaceAll[] = [];
-    const increaseFreq = 5;
+
 
     let counter = 1;
     for (let plane of planes) {
@@ -122,159 +247,56 @@ export class SlotService {
       console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
-      let tempTSAT = this.addMinutesToTime(plane.eobt, plane.taxi);
+      let tempTTOT = this.helperService.addMinutesToTime(
+        plane.eobt,
+        plane.taxi,
+      );
 
       if (plane.cdm && plane.ctot != '' && plane.tsat != '') {
-        tempTSAT = this.addMinutesToTime(plane.tsat, plane.taxi);
-        const diff = this.getTimeDifferenceInMinutes(
-          this.addMinutesToTime(plane.tsat, plane.taxi),
+        tempTTOT = this.helperService.addMinutesToTime(plane.tsat, plane.taxi);
+        const diff = this.helperService.getTimeDifferenceInMinutes(
+          this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
           plane.ctot,
         );
         if (diff !== 0) {
           for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime = this.removeMinutesFromTime(
-              plane.airspaces[z].entryTime,
-              diff,
-            );
-            plane.airspaces[z].exitTime = this.removeMinutesFromTime(
-              plane.airspaces[z].exitTime,
-              diff,
-            );
+            plane.airspaces[z].entryTime =
+              this.helperService.removeMinutesFromTime(
+                plane.airspaces[z].entryTime,
+                diff,
+              );
+            plane.airspaces[z].exitTime =
+              this.helperService.removeMinutesFromTime(
+                plane.airspaces[z].exitTime,
+                diff,
+              );
           }
         }
       } else if (plane.ctot != '') {
-        const diff = this.getTimeDifferenceInMinutes(tempTSAT, plane.ctot);
+        const diff = this.helperService.getTimeDifferenceInMinutes(
+          tempTTOT,
+          plane.ctot,
+        );
         if (diff !== 0) {
           for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime = this.removeMinutesFromTime(
-              plane.airspaces[z].entryTime,
-              diff,
-            );
-            plane.airspaces[z].exitTime = this.removeMinutesFromTime(
-              plane.airspaces[z].exitTime,
-              diff,
-            );
-          }
-        }
-      }
-
-      let newTakeOffTime = tempTSAT;
-      if (plane.cdm) {
-        newTakeOffTime = plane.tsat;
-      }
-      const previousTakeOffTime = newTakeOffTime;
-
-      let isOverloaded = true;
-      const myairspaces: AirspaceComplete[] = plane.airspaces;
-      const airspaceToFix: AirspaceCounter = {
-        airspaceName: '',
-        airspaceCapacity: null,
-        counter: 0,
-      };
-
-      while (isOverloaded) {
-        await new Promise((resolve) => setImmediate(resolve));
-        const counterArray: AirspaceCounter[] = [];
-
-        for (const myairspace of myairspaces) {
-          /*console.log(
-            `${plane.callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`,
-          );*/
-          let counter = 0;
-
-          for (const au of airspaceAll) {
-            for (const airspace of au.airspaces) {
-              if (airspace.airspace === myairspace.airspace) {
-                const entryTime1 = myairspace.entryTime;
-                const exitTime1 = myairspace.exitTime;
-                const entryTime2 = airspace.entryTime;
-                const exitTime2 = airspace.exitTime;
-
-                if (
-                  this.isBetweenEntryAndExit(
-                    entryTime1,
-                    exitTime1,
-                    entryTime2,
-                    exitTime2,
-                  )
-                ) {
-                  /*console.log(
-                    `${plane.callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
-                  );*/
-                  counter++;
-                }
-              }
-            }
-          }
-
-          const counterObj: AirspaceCounter = {
-            airspaceName: myairspace.airspace,
-            airspaceCapacity: myairspace.capacity,
-            counter,
-          };
-          counterArray.push(counterObj);
-        }
-
-        airspaceToFix.counter = 0;
-
-        for (const airspaceCounter of counterArray) {
-          if (airspaceCounter.counter > airspaceCounter.airspaceCapacity) {
-            if (
-              airspaceCounter.counter - airspaceCounter.airspaceCapacity >
-              airspaceToFix.counter
-            ) {
-              airspaceToFix.counter =
-                airspaceCounter.counter - airspaceCounter.airspaceCapacity;
-              airspaceToFix.airspaceName = airspaceCounter.airspaceName;
-            }
-          }
-        }
-
-        if (airspaceToFix.counter > 0) {
-          if (plane.isAirbone && !plane.cdm) {
-            console.log(`Skipping ${plane.callsign} is already airborne`);
-            isOverloaded = false;
-          } else {
-            isOverloaded = true;
-            console.log(
-              `${plane.callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
-            );
-            newTakeOffTime = this.addMinutesToTime(
-              newTakeOffTime,
-              increaseFreq,
-            );
-            for (let z = 0; z < plane.airspaces.length; z++) {
-              plane.airspaces[z].entryTime = this.addMinutesToTime(
+            plane.airspaces[z].entryTime =
+              this.helperService.removeMinutesFromTime(
                 plane.airspaces[z].entryTime,
-                increaseFreq,
+                diff,
               );
-              plane.airspaces[z].exitTime = this.addMinutesToTime(
+            plane.airspaces[z].exitTime =
+              this.helperService.removeMinutesFromTime(
                 plane.airspaces[z].exitTime,
-                increaseFreq,
+                diff,
               );
-            }
-            console.log(
-              `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
-            );
-          }
-        } else {
-          isOverloaded = false;
-
-          if (previousTakeOffTime !== newTakeOffTime) {
-            plane = this.modifyPlaneData(plane, newTakeOffTime, airspaceToFix);
-            console.log(
-              `${plane.callsign} - Is regulated over ${plane.mostPenalizingAirspace}, new CTOT ${plane.ctot}`,
-            );
-            delayedPlanes.push(plane);
-          } else {
-            plane = this.modifyPlaneData(plane, newTakeOffTime, null);
-            //console.log(`${plane.callsign} - Is not regulated regulated`);
           }
         }
       }
+
+      plane = await this.calculatePlane(plane, tempTTOT, airspaceAll);
 
       const airspaceAllElement: AirspaceAll = {
-        airspaces: myairspaces,
+        airspaces: plane.airspaces,
       };
 
       airspaceAll.push(airspaceAllElement);
@@ -308,7 +330,7 @@ export class SlotService {
       plane.ctot = newdeptime;
       plane.delayTime = this.getDifCTOTandEOBT(
         newdeptime,
-        this.addMinutesToTime(plane.eobt, plane.taxi),
+        this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
       );
       plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
       plane.reason = `${plane.mostPenalizingAirspace} capacity`;
@@ -326,44 +348,6 @@ export class SlotService {
     const eobtTotalMinutes = eobtHours * 60 + eobtMinutes;
 
     return ctotTotalMinutes - eobtTotalMinutes;
-  }
-
-  private addMinutesToTime(time: string, minutesToAdd: number): string {
-    let hours = parseInt(time.substring(0, 2));
-    let minutes = parseInt(time.substring(2, 4));
-    minutes += minutesToAdd;
-    hours += Math.floor(minutes / 60);
-    minutes %= 60;
-    hours %= 24;
-    const newHours = hours < 10 ? '0' + hours : hours.toString();
-    const newMinutes = minutes < 10 ? '0' + minutes : minutes.toString();
-    return `${newHours}${newMinutes}`;
-  }
-
-  private removeMinutesFromTime(time: string, minutesToRemove: number): string {
-    let hours = parseInt(time.substring(0, 2));
-    let minutes = parseInt(time.substring(2, 4));
-    minutes -= minutesToRemove;
-    if (minutes < 0) {
-      hours -= Math.ceil(Math.abs(minutes) / 60);
-      minutes = 60 + (minutes % 60);
-    }
-    if (hours < 0) {
-      hours = 24 + (hours % 24);
-    }
-    const newHours = hours < 10 ? '0' + hours : hours.toString();
-    const newMinutes = minutes < 10 ? '0' + minutes : minutes.toString();
-    return `${newHours}${newMinutes}`;
-  }
-
-  private getTimeDifferenceInMinutes(time1: string, time2: string): number {
-    const hours1 = parseInt(time1.substring(0, 2));
-    const minutes1 = parseInt(time1.substring(2, 4));
-    const hours2 = parseInt(time2.substring(0, 2));
-    const minutes2 = parseInt(time2.substring(2, 4));
-    const totalMinutes1 = hours1 * 60 + minutes1;
-    const totalMinutes2 = hours2 * 60 + minutes2;
-    return Math.abs(totalMinutes1 - totalMinutes2);
   }
 
   private isBetweenEntryAndExit(
