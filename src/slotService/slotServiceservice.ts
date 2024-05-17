@@ -221,32 +221,27 @@ export class SlotService {
       }
 
       if (airspaceToFix.counter > 0) {
-        if (plane.isAirbone && !plane.cdm) {
-          console.log(`Skipping ${plane.callsign} is already airborne`);
-          isOverloaded = false;
-        } else {
-          isOverloaded = true;
-          console.log(
-            `${plane.callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
-          );
-          newTakeOffTime = this.helperService.addMinutesToTime(
-            newTakeOffTime,
+        isOverloaded = true;
+        console.log(
+          `${plane.callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
+        );
+        newTakeOffTime = this.helperService.addMinutesToTime(
+          newTakeOffTime,
+          increaseFreq,
+        );
+        for (let z = 0; z < plane.airspaces.length; z++) {
+          plane.airspaces[z].entryTime = this.helperService.addMinutesToTime(
+            plane.airspaces[z].entryTime,
             increaseFreq,
           );
-          for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime = this.helperService.addMinutesToTime(
-              plane.airspaces[z].entryTime,
-              increaseFreq,
-            );
-            plane.airspaces[z].exitTime = this.helperService.addMinutesToTime(
-              plane.airspaces[z].exitTime,
-              increaseFreq,
-            );
-          }
-          console.log(
-            `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
+          plane.airspaces[z].exitTime = this.helperService.addMinutesToTime(
+            plane.airspaces[z].exitTime,
+            increaseFreq,
           );
         }
+        console.log(
+          `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
+        );
       } else {
         isOverloaded = false;
 
@@ -274,63 +269,70 @@ export class SlotService {
       console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
-      let tempTTOT = this.helperService.addMinutesToTime(
-        plane.eobt,
-        plane.taxi,
-      );
-
-      if (plane.cdm && plane.ctot != '' && plane.tsat != '') {
-        tempTTOT = this.helperService.addMinutesToTime(plane.tsat, plane.taxi);
-        const diff = this.helperService.getTimeDifferenceInMinutes(
-          this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-          plane.ctot,
+      if (plane.isAirbone) {
+        console.log(`Skipping ${plane.callsign} is already airborne`);
+      } else {
+        let tempTTOT = this.helperService.addMinutesToTime(
+          plane.eobt,
+          plane.taxi,
         );
-        if (diff !== 0) {
-          for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime =
-              this.helperService.removeMinutesFromTime(
-                plane.airspaces[z].entryTime,
-                diff,
-              );
-            plane.airspaces[z].exitTime =
-              this.helperService.removeMinutesFromTime(
-                plane.airspaces[z].exitTime,
-                diff,
-              );
+
+        if (plane.cdm && plane.ctot != '' && plane.tsat != '') {
+          tempTTOT = this.helperService.addMinutesToTime(
+            plane.tsat,
+            plane.taxi,
+          );
+          const diff = this.helperService.getTimeDifferenceInMinutes(
+            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+            plane.ctot,
+          );
+          if (diff !== 0) {
+            for (let z = 0; z < plane.airspaces.length; z++) {
+              plane.airspaces[z].entryTime =
+                this.helperService.removeMinutesFromTime(
+                  plane.airspaces[z].entryTime,
+                  diff,
+                );
+              plane.airspaces[z].exitTime =
+                this.helperService.removeMinutesFromTime(
+                  plane.airspaces[z].exitTime,
+                  diff,
+                );
+            }
+          }
+        } else if (plane.ctot != '') {
+          const diff = this.helperService.getTimeDifferenceInMinutes(
+            tempTTOT,
+            plane.ctot,
+          );
+          if (diff !== 0) {
+            for (let z = 0; z < plane.airspaces.length; z++) {
+              plane.airspaces[z].entryTime =
+                this.helperService.removeMinutesFromTime(
+                  plane.airspaces[z].entryTime,
+                  diff,
+                );
+              plane.airspaces[z].exitTime =
+                this.helperService.removeMinutesFromTime(
+                  plane.airspaces[z].exitTime,
+                  diff,
+                );
+            }
           }
         }
-      } else if (plane.ctot != '') {
-        const diff = this.helperService.getTimeDifferenceInMinutes(
-          tempTTOT,
-          plane.ctot,
-        );
-        if (diff !== 0) {
-          for (let z = 0; z < plane.airspaces.length; z++) {
-            plane.airspaces[z].entryTime =
-              this.helperService.removeMinutesFromTime(
-                plane.airspaces[z].entryTime,
-                diff,
-              );
-            plane.airspaces[z].exitTime =
-              this.helperService.removeMinutesFromTime(
-                plane.airspaces[z].exitTime,
-                diff,
-              );
-          }
-        }
-      }
 
-      plane = await this.calculatePlane(plane, tempTTOT, airspaceAll);
+        plane = await this.calculatePlane(plane, tempTTOT, airspaceAll);
 
-      const airspaceAllElement: AirspaceAll = {
-        airspaces: plane.airspaces,
-      };
+        const airspaceAllElement: AirspaceAll = {
+          airspaces: plane.airspaces,
+        };
 
-      airspaceAll.push(airspaceAllElement);
+        airspaceAll.push(airspaceAllElement);
 
-      /*console.log(
+        /*console.log(
         `----------------- Finished processing ${plane.callsign} -----------------`,
       );*/
+      }
     }
 
     try {
