@@ -64,7 +64,7 @@ export class RouteService {
 
       if (foundWaypoints.length > 1 && routeWaypoints.length > 0) {
         //If more than 1 wpt found, iterate around wpt checking the distance to find the closes one.
-        let distance = 99999999999999;
+        let minDistance = Infinity;
         const prevWpt = routeWaypoints[routeWaypoints.length - 1];
         let finalWpt: Waypoint = null;
         for (const wpt of foundWaypoints) {
@@ -74,8 +74,8 @@ export class RouteService {
             wpt.lat,
             wpt.lon,
           );
-          if (distanceNow < distance) {
-            distance = distanceNow;
+          if (distanceNow < minDistance) {
+            minDistance = distanceNow;
             finalWpt = wpt;
           }
         }
@@ -365,26 +365,6 @@ export class RouteService {
     return intersections;
   }
 
-  async calculateDistanceRouteParser(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-  ): Promise<number> {
-    const R = 6371e3; // metres
-    const φ1 = (lat1 * Math.PI) / 180; // φ, λ in radians
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
-    const a =
-      Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-      Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c; // in metres
-  }
-
   async simulateFlight(
     route: Waypoint[],
     departureTime: string,
@@ -397,7 +377,7 @@ export class RouteService {
       const currentWaypoint = route[i];
       const nextWaypoint = route[i + 1];
 
-      const distanceToNextWaypoint = this.calculateDistanceRouteParser(
+      const distanceToNextWaypoint = this.calculateDistanceWaypoints(
         currentWaypoint.lat,
         currentWaypoint.lon,
         nextWaypoint.lat,
@@ -462,23 +442,21 @@ export class RouteService {
     return formattedHours + formattedMinutes;
   }
 
-  async calculateDistanceWaypoints(
-    lat1: number,
-    lon1: number,
-    lat2: number,
-    lon2: number,
-  ): Promise<number> {
-    const R = 6371e3; // metres
-    const φ1 = (lat1 * Math.PI) / 180; // φ, λ in radians
-    const φ2 = (lat2 * Math.PI) / 180;
-    const Δφ = ((lat2 - lat1) * Math.PI) / 180;
-    const Δλ = ((lon2 - lon1) * Math.PI) / 180;
+  async calculateDistanceWaypoints(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in kilometers
+    const toRadians = (degrees) => (degrees * Math.PI) / 180;
+
+    const φ1 = toRadians(lat1);
+    const φ2 = toRadians(lat2);
+    const Δφ = toRadians(lat2 - lat1);
+    const Δλ = toRadians(lon2 - lon1);
 
     const a =
       Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
       Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return R * c; // in metres
+    const distance = R * c; // Distance in kilometers
+    return distance;
   }
 }
