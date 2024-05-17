@@ -37,27 +37,46 @@ export class SlotService {
         continue;
       }
 
+      const isAirbone = plane.groundspeed > 80;
+
       const existingPlane = existingPlanes.find((existingPlane) => {
         return (
           existingPlane.callsign === plane.callsign &&
           existingPlane.departure === flight_plan.departure &&
           existingPlane.arrival === flight_plan.arrival &&
-          existingPlane.eobt === flight_plan.deptime &&
           existingPlane.route === flight_plan.route
         );
       });
 
       if (existingPlane) {
-        if (existingPlane.cdm) {
-          console.log(`Plane controlled by CDM, skipping`);
-          existingPlane.modify = false;
+        if (isAirbone == true && existingPlane.isAirbone != isAirbone) {
+          //Set automatically airbone
+          existingPlane.isAirbone = true;
+          existingPlane.modify = true;
+          if (!existingPlane.cdm) {
+            existingPlane.eobt = this.helperService.removeMinutesFromTime(
+              existingPlane.eobt,
+              existingPlane.taxi,
+            );
+          }
           delayedPlanes.push(existingPlane);
-          continue;
+        } else if (existingPlane.eobt != flight_plan.deptime) {
+          //Update EOBT when pilot updates flightplan's EOBT
+          existingPlane.eobt = flight_plan.deptime;
+          existingPlane.modify = true;
+          delayedPlanes.push(existingPlane);
         } else {
-          console.log(`Plane already fetched, skipping`);
-          existingPlane.modify = false;
-          delayedPlanes.push(existingPlane);
-          continue;
+          if (existingPlane.cdm) {
+            console.log(`Plane controlled by CDM, skipping`);
+            existingPlane.modify = false;
+            delayedPlanes.push(existingPlane);
+            continue;
+          } else {
+            console.log(`Plane already fetched, skipping`);
+            existingPlane.modify = false;
+            delayedPlanes.push(existingPlane);
+            continue;
+          }
         }
       }
 
@@ -72,7 +91,6 @@ export class SlotService {
           airspaces,
         );
 
-      const isAirbone = plane.groundspeed > 80;
       delayedPlanes.push({
         callsign: plane.callsign,
         departure: flight_plan.departure,
@@ -239,7 +257,6 @@ export class SlotService {
   async delayPlanes(planes: DelayedPlane[]): Promise<DelayedPlane[]> {
     const delayedPlanes: DelayedPlane[] = [];
     const airspaceAll: AirspaceAll[] = [];
-
 
     let counter = 1;
     for (let plane of planes) {
