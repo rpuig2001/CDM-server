@@ -377,12 +377,14 @@ export class RouteService {
       const currentWaypoint = route[i];
       const nextWaypoint = route[i + 1];
 
-      const distanceToNextWaypoint = this.calculateDistanceWaypoints(
+      let distanceToNextWaypoint = await this.calculateDistanceWaypoints(
         currentWaypoint.lat,
         currentWaypoint.lon,
         nextWaypoint.lat,
         nextWaypoint.lon,
       );
+
+      distanceToNextWaypoint = distanceToNextWaypoint * 1000;
 
       // Calculate the time it takes to reach the next waypoint based on speed
       const timeToNextWaypoint =
