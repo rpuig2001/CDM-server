@@ -5,6 +5,7 @@ import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
 import { RouteService } from './route/route.service';
+import { AirspaceService } from './airspace/airspace.service';
 
 @Controller('slotService')
 export class SlotServiceController {
@@ -12,6 +13,7 @@ export class SlotServiceController {
     private readonly slotService: SlotService,
     private readonly httpService: HttpService,
     private readonly delayedPlaneService: DelayedPlaneService,
+    private readonly airspaceService: AirspaceService,
     private readonly routeService: RouteService,
   ) {}
 
@@ -39,6 +41,11 @@ export class SlotServiceController {
     @Query('tsat') tsat: string,
   ) {
     return this.delayedPlaneService.setCDM_TSAT(callsign, taxi, tsat);
+  }
+
+  @Get('airspaces')
+  getAirspacesWorkload(@Query('airspace') airspace: string) {
+    return this.airspaceService.getHourlyPeaks();
   }
 
   @Get('restricted')

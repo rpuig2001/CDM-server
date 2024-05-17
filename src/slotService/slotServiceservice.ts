@@ -2,9 +2,9 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
 import { RouteService } from './route/route.service';
 import { DelayedPlane } from './delayedPlanes/delayedPlane.model';
-import { AirspaceAll } from './interface/airspaces-all.interface';
-import { AirspaceCounter } from './interface/airspace-counter.interface';
-import { AirspaceComplete } from './interface/airspace-complete.interface';
+import { AirspaceAll } from './airspace/interface/airspaces-all.interface';
+import { AirspaceCounter } from './airspace/interface/airspace-counter.interface';
+import { AirspaceComplete } from './airspace/interface/airspace-complete.interface';
 import { HelperService } from './helper/helper.service';
 
 @Injectable()
@@ -135,7 +135,7 @@ export class SlotService {
     const airspaceAll: AirspaceAll[] = [];
 
     for (const foundPlane of planes) {
-      if (foundPlane.callsign != callsign && callsign != '') {
+      if (foundPlane.callsign != callsign || callsign == '') {
         airspaceAll.push({
           airspaces: foundPlane.airspaces,
         });

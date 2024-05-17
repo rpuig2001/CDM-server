@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { AirspaceComplete } from '../interface/airspace-complete.interface';
+import { AirspaceComplete } from '../airspace/interface/airspace-complete.interface';
 
 @Schema()
 export class DelayedPlane {

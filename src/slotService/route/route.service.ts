@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
-import { AirspaceComplete } from '../interface/airspace-complete.interface';
+import { AirspaceComplete } from '../airspace/interface/airspace-complete.interface';
 import { Airway } from './interface/airway.interface';
 import { Airspace } from './interface/airspace.interface';
 import { Waypoint } from './interface/waypoint.interface';
