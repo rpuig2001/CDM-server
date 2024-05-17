@@ -145,7 +145,7 @@ export class DelayedPlaneService {
       const dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
         if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
-          console.log(`Updating ${dbPlane.callsign}`);
+          //console.log(`Updating ${dbPlane.callsign}`);
           dbPlane.set(plane);
           await dbPlane.save();
         }
@@ -164,14 +164,14 @@ export class DelayedPlaneService {
       const dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
         if (plane.modify) {
-          console.log(`Updating aircraft ${dbPlane.callsign}`);
+          //console.log(`Updating aircraft ${dbPlane.callsign}`);
           plane.modify = false;
           dbPlane.set(plane);
           await dbPlane.save();
         }
         dbPlanesMap.delete(plane.callsign);
       } else {
-        console.log(`Saving aircraft ${plane.callsign}`);
+        //console.log(`Saving aircraft ${plane.callsign}`);
         plane.modify = false;
         const newPlane = new this.slotServiceModel(plane);
         await newPlane.save();

@@ -17,6 +17,7 @@ export class SlotService {
   ) {}
 
   async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
+    console.log(`Processing ${planes.length} planes`);
     const delayedPlanes: DelayedPlane[] = [];
     const [waypoints, airways, airspaces, existingPlanes] = await Promise.all([
       this.routeService.getWaypoints(),
@@ -29,11 +30,11 @@ export class SlotService {
     for (const plane of planes) {
       await new Promise((resolve) => setImmediate(resolve));
       const { flight_plan } = plane;
-      console.log(`${plane.callsign} - (${counter}/${planes.length})`);
+      //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
       if (!flight_plan || flight_plan.flight_rules === 'V') {
-        console.log(`Flightplan not available or VFR Flightplan, skipping`);
+        //console.log(`Flightplan not available or VFR Flightplan, skipping`);
         continue;
       }
 
@@ -51,7 +52,7 @@ export class SlotService {
       if (existingPlane) {
         if (isAirbone == true && existingPlane.isAirbone != isAirbone) {
           //Set automatically airbone
-          console.log(`${existingPlane.callsign} just departed, updating`);
+          //console.log(`${existingPlane.callsign} just departed, updating`);
           existingPlane.isAirbone = true;
           existingPlane.modify = true;
           const previousTTOT = this.helperService.addMinutesToTime(
@@ -77,12 +78,12 @@ export class SlotService {
           continue;
         } else {
           if (existingPlane.cdm) {
-            console.log(`Plane controlled by CDM, skipping`);
+            //console.log(`Plane controlled by CDM, skipping`);
             existingPlane.modify = false;
             delayedPlanes.push(existingPlane);
             continue;
           } else {
-            console.log(`Plane already fetched, skipping`);
+            //console.log(`Plane already fetched, skipping`);
             existingPlane.modify = false;
             delayedPlanes.push(existingPlane);
             continue;
@@ -122,7 +123,7 @@ export class SlotService {
 
     try {
       await this.delayedPlaneService.updatePlanes(delayedPlanes);
-      console.log(`Data saved to DB`);
+      console.log(`Processed data saved to DB`);
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
     }
@@ -222,9 +223,9 @@ export class SlotService {
 
       if (airspaceToFix.counter > 0) {
         isOverloaded = true;
-        console.log(
+        /*console.log(
           `${plane.callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
-        );
+        );*/
         newTakeOffTime = this.helperService.addMinutesToTime(
           newTakeOffTime,
           increaseFreq,
@@ -239,17 +240,17 @@ export class SlotService {
             increaseFreq,
           );
         }
-        console.log(
+        /*console.log(
           `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
-        );
+        );*/
       } else {
         isOverloaded = false;
 
         if (previousTakeOffTime !== newTakeOffTime) {
           plane = this.modifyPlaneData(plane, newTakeOffTime, airspaceToFix);
-          console.log(
+          /*console.log(
             `${plane.callsign} - Is regulated over ${plane.mostPenalizingAirspace}, new CTOT ${plane.ctot}`,
-          );
+          );*/
         } else {
           plane = this.modifyPlaneData(plane, newTakeOffTime, null);
           //console.log(`${plane.callsign} - Is not regulated regulated`);
@@ -263,14 +264,16 @@ export class SlotService {
     const delayedPlanes: DelayedPlane[] = [];
     const airspaceAll: AirspaceAll[] = [];
 
+    console.log(`Calculating ${planes.length} planes`);
+
     let counter = 1;
     for (let plane of planes) {
       await new Promise((resolve) => setImmediate(resolve));
-      console.log(`${plane.callsign} - (${counter}/${planes.length})`);
+      //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
       if (plane.isAirbone) {
-        console.log(`Skipping ${plane.callsign} is already airborne`);
+        //console.log(`Skipping ${plane.callsign} is already airborne`);
       } else {
         let tempTTOT = this.helperService.addMinutesToTime(
           plane.eobt,
@@ -337,7 +340,7 @@ export class SlotService {
 
     try {
       await this.delayedPlaneService.saveDelayedPlane(planes);
-      console.log(`Data saved to DB`);
+      console.log(`Calculation data saved to DB`);
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
     }
