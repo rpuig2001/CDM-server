@@ -7,7 +7,7 @@ export const databaseProviders = [
       await mongoose.connect(
         'mongodb://mongo:IEtDXdDbODrgdypXYxrzRMZzfYENNqxK@monorail.proxy.rlwy.net:26672',
         {
-            useNewUrlParser: true,
+            uri_decode_auth: true,
             useUnifiedTopology: true,
           }
       ),
