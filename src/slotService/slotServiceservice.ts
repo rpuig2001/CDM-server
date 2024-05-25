@@ -50,7 +50,7 @@ export class SlotService {
       });
 
       if (existingPlane) {
-        if (isAirbone == true && existingPlane.isAirbone != isAirbone) {
+        if (isAirbone == true && existingPlane.isAirbone != true) {
           //Set automatically airbone
           //console.log(`${existingPlane.callsign} just departed, updating`);
           existingPlane.isAirbone = true;
@@ -279,31 +279,13 @@ export class SlotService {
           plane.eobt,
           plane.taxi,
         );
-
-        if (plane.cdm && plane.ctot != '' && plane.tsat != '') {
+        if (plane.tsat != '') {
           tempTTOT = this.helperService.addMinutesToTime(
             plane.tsat,
             plane.taxi,
           );
-          const diff = this.helperService.getTimeDifferenceInMinutes(
-            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-            plane.ctot,
-          );
-          if (diff !== 0) {
-            for (let z = 0; z < plane.airspaces.length; z++) {
-              plane.airspaces[z].entryTime =
-                this.helperService.removeMinutesFromTime(
-                  plane.airspaces[z].entryTime,
-                  diff,
-                );
-              plane.airspaces[z].exitTime =
-                this.helperService.removeMinutesFromTime(
-                  plane.airspaces[z].exitTime,
-                  diff,
-                );
-            }
-          }
-        } else if (plane.ctot != '') {
+        }
+        if (plane.ctot != '') {
           const diff = this.helperService.getTimeDifferenceInMinutes(
             tempTTOT,
             plane.ctot,
