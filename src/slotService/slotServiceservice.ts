@@ -272,9 +272,9 @@ export class SlotService {
       console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
-      if (plane.isAirbone) {
+      /*if (plane.isAirbone) {
         console.log(`Skipping ${plane.callsign} is already airborne`);
-      } else {
+      } else {*/
         let tempTTOT = this.helperService.addMinutesToTime(
           plane.eobt,
           plane.taxi,
@@ -317,7 +317,7 @@ export class SlotService {
         /*console.log(
         `----------------- Finished processing ${plane.callsign} -----------------`,
       );*/
-      }
+      //}
     }
 
     try {
