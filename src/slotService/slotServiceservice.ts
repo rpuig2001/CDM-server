@@ -168,9 +168,9 @@ export class SlotService {
       const counterArray: AirspaceCounter[] = [];
 
       for (const myairspace of myairspaces) {
-        /*console.log(
+        console.log(
             `${plane.callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`,
-          );*/
+          );
         let counter = 0;
 
         for (const au of airspaceAll) {
@@ -189,9 +189,9 @@ export class SlotService {
                   exitTime2,
                 )
               ) {
-                /*console.log(
+                console.log(
                     `${plane.callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
-                  );*/
+                  );
                 counter++;
               }
             }
@@ -223,9 +223,9 @@ export class SlotService {
 
       if (airspaceToFix.counter > 0) {
         isOverloaded = true;
-        /*console.log(
+        console.log(
           `${plane.callsign} - Detected ${airspaceToFix.counter} planes over ${airspaceToFix.airspaceName}`,
-        );*/
+        );
         newTakeOffTime = this.helperService.addMinutesToTime(
           newTakeOffTime,
           increaseFreq,
@@ -240,20 +240,20 @@ export class SlotService {
             increaseFreq,
           );
         }
-        /*console.log(
+        console.log(
           `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
-        );*/
+        );
       } else {
         isOverloaded = false;
 
         if (previousTakeOffTime !== newTakeOffTime) {
           plane = this.modifyPlaneData(plane, newTakeOffTime, airspaceToFix);
-          /*console.log(
+          console.log(
             `${plane.callsign} - Is regulated over ${plane.mostPenalizingAirspace}, new CTOT ${plane.ctot}`,
-          );*/
+          );
         } else {
           plane = this.modifyPlaneData(plane, newTakeOffTime, null);
-          //console.log(`${plane.callsign} - Is not regulated regulated`);
+          console.log(`${plane.callsign} - Is not regulated regulated`);
         }
       }
     }
@@ -269,11 +269,11 @@ export class SlotService {
     let counter = 1;
     for (let plane of planes) {
       await new Promise((resolve) => setImmediate(resolve));
-      //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
+      console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
       if (plane.isAirbone) {
-        //console.log(`Skipping ${plane.callsign} is already airborne`);
+        console.log(`Skipping ${plane.callsign} is already airborne`);
       } else {
         let tempTTOT = this.helperService.addMinutesToTime(
           plane.eobt,
