@@ -1,5 +1,6 @@
-import { Injectable, HttpService, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { AxiosInstance } from '@nestjs/axios';
 import { catchError } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 
@@ -7,7 +8,7 @@ import { throwError } from 'rxjs';
 export class AppService {
   private readonly logger = new Logger(AppService.name);
 
-  constructor(private httpService: HttpService) {}
+  constructor(private httpService: AxiosInstance) {}
 
   getInitialize(): string {
     return 'CDM API';
