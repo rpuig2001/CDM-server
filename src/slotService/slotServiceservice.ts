@@ -189,9 +189,9 @@ export class SlotService {
                   exitTime2,
                 )
               ) {
-                console.log(
+                /*console.log(
                     `${plane.callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
-                  );
+                  );*/
                 counter++;
               }
             }
@@ -240,9 +240,9 @@ export class SlotService {
             increaseFreq,
           );
         }
-        /*console.log(
+        console.log(
           `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
-        );*/
+        );
       } else {
         isOverloaded = false;
 
