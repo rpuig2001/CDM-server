@@ -274,7 +274,9 @@ export class SlotService {
 
       if (plane.isAirbone) {
         //console.log(`Skipping ${plane.callsign} is already airborne`);
-        airspaceAll.push(plane.airspaces);
+        airspaceAll.push({
+          airspaces: plane.airspaces,
+        });
       } else {
         let tempTTOT = this.helperService.addMinutesToTime(
           plane.eobt,
