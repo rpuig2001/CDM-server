@@ -1,4 +1,4 @@
-import * as mongoose from 'mongoose';
+import mongoose, { ConnectOptions } from 'mongoose';
 
 export const databaseProviders = [
   {
