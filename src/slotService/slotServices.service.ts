@@ -102,8 +102,18 @@ export class SlotService {
             delayedPlanes.push(existingPlane);
             continue;
           } else {
-            //console.log(`Plane already fetched, skipping`);
-            existingPlane.modify = false;
+            //Check if new EOBT sent by the pilot
+            if (
+              existingPlane.cdm == false &&
+              existingPlane.eobt != plane.eobt
+            ) {
+              //console.log(`Plane already fetched, updating EOBT as filed`);
+              existingPlane.modify = true;
+              existingPlane.eobt = plane.eobt;
+            } else {
+              //console.log(`Plane already fetched, skipping`);
+              existingPlane.modify = false;
+            }
             delayedPlanes.push(existingPlane);
             continue;
           }
