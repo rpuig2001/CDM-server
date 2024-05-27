@@ -105,11 +105,11 @@ export class SlotService {
             //Check if new EOBT sent by the pilot
             if (
               existingPlane.cdm == false &&
-              existingPlane.eobt != flight_plan.departure
+              existingPlane.eobt != flight_plan.deptime
             ) {
               //console.log(`Plane already fetched, updating EOBT as filed (${existingPlane.eobt} - ${plane.eobt})`);
               existingPlane.modify = true;
-              existingPlane.eobt = flight_plan.departure;
+              existingPlane.eobt = flight_plan.deptime;
             } else {
               //console.log(`Plane already fetched, skipping`);
               existingPlane.modify = false;
