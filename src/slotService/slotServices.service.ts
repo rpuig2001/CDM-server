@@ -309,7 +309,57 @@ export class SlotService {
           }
         }
 
-        plane = await this.calculatePlane(plane, tempTTOT, airspaceAll);
+        const calcPlane = await this.calculatePlane(
+          plane,
+          tempTTOT,
+          airspaceAll,
+        );
+
+        /*Making CTOT valid if:
+        1. existing ctot > new ctot (only if CTOT exists already).
+        2. (new CTOT - taxiTime) > timeNow.
+        3. (newCTOT - taxiTime) and timeNow diff is > 5.
+        */
+        if (calcPlane.ctot != '' && plane.ctot != '') {
+          if (
+            this.helperService.isTime1GreaterThanTime2(
+              plane.ctot,
+              calcPlane.ctot,
+            )
+          ) {
+            if (
+              this.helperService.isTime1GreaterThanTime2(
+                calcPlane.ctot,
+                this.helperService.getCurrentUTCTime(),
+              ) &&
+              this.helperService.getTimeDifferenceInMinutes(
+                this.helperService.getCurrentUTCTime(),
+                calcPlane.ctot,
+              ) > 5
+            ) {
+              plane = calcPlane;
+            }
+          }
+        } else if (calcPlane.ctot != '') {
+          if (
+            this.helperService.isTime1GreaterThanTime2(
+              this.helperService.removeMinutesFromTime(
+                calcPlane.ctot,
+                calcPlane.taxi,
+              ),
+              this.helperService.getCurrentUTCTime(),
+            ) &&
+            this.helperService.getTimeDifferenceInMinutes(
+              this.helperService.getCurrentUTCTime(),
+              this.helperService.removeMinutesFromTime(
+                calcPlane.ctot,
+                calcPlane.taxi,
+              ),
+            ) > 5
+          ) {
+            plane = calcPlane;
+          }
+        }
 
         const airspaceAllElement: AirspaceAll = {
           airspaces: plane.airspaces,
