@@ -55,25 +55,44 @@ export class SlotService {
           //console.log(`${existingPlane.callsign} just departed, updating`);
           existingPlane.isAirbone = true;
           existingPlane.modify = true;
-          const previousTTOT = this.helperService.addMinutesToTime(
-            existingPlane.eobt,
-            existingPlane.taxi,
-          );
-          if (!existingPlane.cdm) {
-            existingPlane.eobt = this.helperService.removeMinutesFromTime(
-              this.helperService.getCurrentUTCTime(),
+
+          let updateEOBT = false;
+          /* Modify EOBT only if CTOT exists and diff between timeNow and CTOT > 15 */
+          if (existingPlane.ctot != '') {
+            if (
+              this.helperService.getTimeDifferenceInMinutes(
+                this.helperService.getCurrentUTCTime(),
+                existingPlane.ctot,
+              ) > 15
+            ) {
+              updateEOBT = true;
+            }
+          } else {
+            updateEOBT = true;
+          }
+
+          if (updateEOBT) {
+            const previousTTOT = this.helperService.addMinutesToTime(
+              existingPlane.eobt,
               existingPlane.taxi,
             );
+            if (!existingPlane.cdm) {
+              existingPlane.eobt = this.helperService.removeMinutesFromTime(
+                this.helperService.getCurrentUTCTime(),
+                existingPlane.taxi,
+              );
+            }
+            const actualTTOT = this.helperService.addMinutesToTime(
+              existingPlane.eobt,
+              existingPlane.taxi,
+            );
+            existingPlane.airspaces = await this.moveTimesOfAirspace(
+              existingPlane.airspaces,
+              actualTTOT,
+              previousTTOT,
+            );
           }
-          const actualTTOT = this.helperService.addMinutesToTime(
-            existingPlane.eobt,
-            existingPlane.taxi,
-          );
-          existingPlane.airspaces = await this.moveTimesOfAirspace(
-            existingPlane.airspaces,
-            actualTTOT,
-            previousTTOT,
-          );
+
           delayedPlanes.push(existingPlane);
           continue;
         } else {
