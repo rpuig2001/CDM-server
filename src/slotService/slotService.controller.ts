@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Query } from '@nestjs/common';
-import { SlotService } from './slotServiceservice';
+import { SlotService } from './slotServices.service';
 import { HttpService } from '@nestjs/axios';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';

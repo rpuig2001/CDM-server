@@ -1,6 +1,6 @@
 // airspace.service.ts
 import { Injectable } from '@nestjs/common';
-import { SlotService } from '../slotServiceservice';
+import { SlotService } from '../slotServices.service';
 import { AirspaceAll } from './interface/airspaces-all.interface';
 
 @Injectable()

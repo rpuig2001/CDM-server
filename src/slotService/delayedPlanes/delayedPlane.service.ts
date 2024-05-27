@@ -2,7 +2,7 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { DelayedPlane } from './delayedPlane.model';
 import { HelperService } from '../helper/helper.service';
-import { SlotService } from '../slotServiceservice';
+import { SlotService } from '../slotServices.service';
 
 @Injectable()
 export class DelayedPlaneService {
