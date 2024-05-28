@@ -104,6 +104,7 @@ export class SlotService {
           } else {
             //Check if new EOBT sent by the pilot
             if (
+              !isAirbone &&
               existingPlane.cdm == false &&
               existingPlane.eobt != flight_plan.deptime
             ) {
