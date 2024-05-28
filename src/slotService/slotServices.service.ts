@@ -38,7 +38,7 @@ export class SlotService {
         continue;
       }
 
-      const isAirbone = plane.groundspeed > 80;
+      const isAirborne = plane.groundspeed > 80;
 
       const existingPlane = existingPlanes.find((existingPlane) => {
         return (
@@ -50,10 +50,10 @@ export class SlotService {
       });
 
       if (existingPlane) {
-        if (isAirbone == true && existingPlane.isAirbone != true) {
+        if (isAirborne == true && existingPlane.atot == '') {
           //Set automatically airbone
           //console.log(`${existingPlane.callsign} just departed, updating`);
-          existingPlane.isAirbone = true;
+          existingPlane.atot = this.helperService.getCurrentUTCTime();
           existingPlane.modify = true;
 
           let updateEOBT = false;
@@ -104,7 +104,7 @@ export class SlotService {
           } else {
             //Check if new EOBT sent by the pilot
             if (
-              !isAirbone &&
+              isAirborne == false &&
               existingPlane.cdm == false &&
               existingPlane.eobt != flight_plan.deptime
             ) {
@@ -132,6 +132,11 @@ export class SlotService {
           airspaces,
         );
 
+      let myAtot = '';
+      if(isAirborne){
+        myAtot = this.helperService.getCurrentUTCTime();
+      }
+
       delayedPlanes.push({
         callsign: plane.callsign,
         departure: flight_plan.departure,
@@ -139,12 +144,12 @@ export class SlotService {
         eobt: flight_plan.deptime,
         tsat: '',
         ctot: '',
+        atot: myAtot,
         taxi: 15,
         delayTime: 0,
         mostPenalizingAirspace: '',
         reason: '',
         airspaces: myairspaces,
-        isAirbone,
         route: flight_plan.route,
         modify: true,
         cdm: false,
@@ -302,7 +307,7 @@ export class SlotService {
       //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
-      if (plane.isAirbone) {
+      if (plane.atot != '') {
         //console.log(`Skipping ${plane.callsign} is already airborne`);
         airspaceAll.push({
           airspaces: plane.airspaces,

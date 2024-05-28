@@ -19,13 +19,16 @@ export class DelayedPlane {
   tsat: string;
 
   @Prop()
-  ctot: string;
-
-  @Prop()
   taxi: number;
 
   @Prop()
+  ctot: string;
+
+  @Prop()
   delayTime: number;
+
+  @Prop()
+  atot: string;
 
   @Prop()
   mostPenalizingAirspace: string;
@@ -35,9 +38,6 @@ export class DelayedPlane {
 
   @Prop()
   airspaces: AirspaceComplete[];
-
-  @Prop()
-  isAirbone: boolean;
 
   @Prop()
   route: string;
