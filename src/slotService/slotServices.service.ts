@@ -72,10 +72,15 @@ export class SlotService {
           }
 
           if (updateEOBT) {
-            const previousTTOT = this.helperService.addMinutesToTime(
+            let previousTTOT = this.helperService.addMinutesToTime(
               existingPlane.eobt,
               existingPlane.taxi,
             );
+
+            if (existingPlane.ctot != '') {
+              previousTTOT = existingPlane.ctot;
+            }
+
             if (!existingPlane.cdm) {
               existingPlane.eobt = this.helperService.removeMinutesFromTime(
                 this.helperService.getCurrentUTCTime(),
@@ -133,7 +138,7 @@ export class SlotService {
         );
 
       let myAtot = '';
-      if(isAirborne){
+      if (isAirborne) {
         myAtot = this.helperService.getCurrentUTCTime();
       }
 
