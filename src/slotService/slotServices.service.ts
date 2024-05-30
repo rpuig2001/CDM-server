@@ -404,7 +404,7 @@ export class SlotService {
         );
         calcPlane.ctot = possibleCTOTdueArrival;
         calcPlane.mostPenalizingAirspace = calcPlane.arrival;
-        calcPlane.reason = calcPlane.arrival + ' capactiy';
+        calcPlane.reason = calcPlane.arrival + ' Aerodrome Capacity';
         console.log(
           `${calcPlane.callsign} new CTOT ${calcPlane.ctot} due to arrival airport (${calcPlane.arrival})`,
         );
@@ -418,7 +418,7 @@ export class SlotService {
       );
       calcPlane.ctot = possibleCTOTdueArrival;
       calcPlane.mostPenalizingAirspace = calcPlane.arrival;
-      calcPlane.reason = calcPlane.arrival + ' capactiy';
+      calcPlane.reason = calcPlane.arrival + ' Aerodrome Capacity';
       console.log(
         `${calcPlane.callsign} new CTOT due to arrival airport (${calcPlane.arrival}) - ${calcPlane.ctot}`,
       );
@@ -613,7 +613,7 @@ export class SlotService {
         this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
       );
       plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
-      plane.reason = `${plane.mostPenalizingAirspace} capacity`;
+      plane.reason = `${plane.mostPenalizingAirspace} Airspace Capacity`;
     }
     return plane;
   }
