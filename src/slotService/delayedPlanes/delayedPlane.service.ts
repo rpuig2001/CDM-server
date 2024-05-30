@@ -3,15 +3,19 @@ import { Model } from 'mongoose';
 import { DelayedPlane } from './delayedPlane.model';
 import { HelperService } from '../helper/helper.service';
 import { SlotService } from '../slotServices.service';
+import { CadAirportService } from '../cadAirport/cadAirport.service';
+import { cadAirport } from '../cadAirport/interface/cadAirport.interface';
 
 @Injectable()
 export class DelayedPlaneService {
   constructor(
     // eslint-disable-next-line prettier/prettier
     @Inject(forwardRef(() => SlotService)) private readonly slotServiceService: SlotService,
+    @Inject(forwardRef(() => SlotService)) private readonly delayedPlaneService: DelayedPlaneService,
     private readonly helperService: HelperService,
     // eslint-disable-next-line prettier/prettier
     @Inject('SLOT_SERVICE_MODEL') private readonly slotServiceModel: Model<DelayedPlane>,
+    private readonly cadAirportService: CadAirportService,
   ) {}
 
   async getAllDelayedPlanes(): Promise<DelayedPlane[]> {
@@ -58,11 +62,27 @@ export class DelayedPlaneService {
           await this.slotServiceService.getAirspacesWorkload(plane.callsign);
 
         //calculate
-        plane = await this.slotServiceService.calculatePlane(
+        let calcPlane = await this.slotServiceService.calculatePlane(
           plane,
           this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
           airspacesWorkload,
         );
+
+        //Get Planes
+        const planes = await this.delayedPlaneService.getAllDelayedPlanes();
+        //Get cadAirports
+        const cadAirports: cadAirport[] =
+          await this.cadAirportService.getAirports();
+
+        calcPlane = await this.slotServiceService.calculatePlaneDestination(
+          plane.airspaces,
+          planes,
+          cadAirports,
+          calcPlane,
+          this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+        );
+
+        plane = await this.slotServiceService.makeCTOTvalid(calcPlane, plane);
       } else if (plane && tsat.length === 0) {
         if (plane.tsat != '') {
           previousTTOT = this.helperService.addMinutesToTime(
@@ -96,11 +116,27 @@ export class DelayedPlaneService {
           await this.slotServiceService.getAirspacesWorkload(plane.callsign);
 
         //calculate
-        plane = await this.slotServiceService.calculatePlane(
+        let calcPlane = await this.slotServiceService.calculatePlane(
           plane,
           this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
           airspacesWorkload,
         );
+
+        //Get Planes
+        const planes = await this.delayedPlaneService.getAllDelayedPlanes();
+        //Get cadAirports
+        const cadAirports: cadAirport[] =
+          await this.cadAirportService.getAirports();
+
+        calcPlane = await this.slotServiceService.calculatePlaneDestination(
+          plane.airspaces,
+          planes,
+          cadAirports,
+          calcPlane,
+          this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+        );
+
+        plane = await this.slotServiceService.makeCTOTvalid(calcPlane, plane);
       }
 
       //Update DB Plane

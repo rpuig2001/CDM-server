@@ -35,7 +35,7 @@ export class SlotServiceController {
   }
 
   @Post('cdm')
-  setQueryToRemoveMaster(
+  setQueryToSetTSAT(
     @Query('callsign') callsign: string,
     @Query('taxi') taxi: number,
     @Query('tsat') tsat: string,

@@ -1,11 +1,13 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
+import { CadAirportService } from './cadAirport/cadAirport.service';
 import { RouteService } from './route/route.service';
 import { DelayedPlane } from './delayedPlanes/delayedPlane.model';
 import { AirspaceAll } from './airspace/interface/airspaces-all.interface';
 import { AirspaceCounter } from './airspace/interface/airspace-counter.interface';
 import { AirspaceComplete } from './airspace/interface/airspace-complete.interface';
 import { HelperService } from './helper/helper.service';
+import { cadAirport } from './cadAirport/interface/cadAirport.interface';
 
 @Injectable()
 export class SlotService {
@@ -14,6 +16,7 @@ export class SlotService {
     private readonly delayedPlaneService: DelayedPlaneService,
     private readonly routeService: RouteService,
     private readonly helperService: HelperService,
+    private readonly cadAirportService: CadAirportService,
   ) {}
 
   async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
@@ -136,6 +139,21 @@ export class SlotService {
           airways,
           airspaces,
         );
+
+      // Sorting function
+      myairspaces.sort((a, b) => {
+        if (
+          this.helperService.isTime1GreaterThanTime2(a.entryTime, b.entryTime)
+        ) {
+          return 1;
+        } else if (
+          this.helperService.isTime1GreaterThanTime2(b.entryTime, a.entryTime)
+        ) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
 
       let myAtot = '';
       if (isAirborne) {
@@ -300,9 +318,119 @@ export class SlotService {
     return plane;
   }
 
+  async getAirportRate(airport: string, airports: cadAirport[]) {
+    for (const apt of airports) {
+      if (apt.icao == airport) {
+        return apt.rate;
+      }
+    }
+    return 30;
+  }
+
+  async calculatePlaneDestination(
+    initialAirspaces: AirspaceComplete[],
+    planes: DelayedPlane[],
+    cadAirports: cadAirport[],
+    calcPlane: DelayedPlane,
+    tempTTOT: string,
+  ): Promise<DelayedPlane> {
+    let delayTime = 0;
+    if (initialAirspaces.length > 0) {
+      const initialArrivalTime =
+        initialAirspaces[initialAirspaces.length - 1].exitTime;
+      const rate = await this.getAirportRate(calcPlane.arrival, cadAirports);
+
+      let arrivalTime = initialArrivalTime;
+      let checked = false;
+
+      while (!checked) {
+        let doNotCheckMore = false;
+        checked = true;
+        for (const p of planes) {
+          if (p.airspaces.length > 0) {
+            if (p.callsign == calcPlane.callsign) {
+              doNotCheckMore = true;
+            }
+
+            if (p.arrival == calcPlane.arrival && !doNotCheckMore) {
+              const otherArrivalTime =
+                p.airspaces[p.airspaces.length - 1].exitTime;
+
+              if (
+                this.helperService.getTimeDifferenceInMinutes(
+                  arrivalTime,
+                  otherArrivalTime,
+                ) < Math.ceil(60 / rate)
+              ) {
+                arrivalTime = this.helperService.addMinutesToTime(
+                  otherArrivalTime,
+                  Math.ceil(60 / rate),
+                );
+                /*console.log(
+                  `${calcPlane.callsign} using arrivalTime: ${initialArrivalTime} / new arrivalTime ${arrivalTime}`,
+                );*/
+                /*console.log(
+                  `${calcPlane.callsign} conflicts with ${p.callsign} which lands at ${otherArrivalTime} (Rate ${rate})`,
+                );*/
+                checked = false;
+              }
+            }
+          }
+        }
+      }
+
+      delayTime = this.helperService.getTimeDifferenceInMinutes(
+        initialArrivalTime,
+        arrivalTime,
+      );
+    }
+
+    const possibleCTOTdueArrival = this.helperService.addMinutesToTime(
+      tempTTOT,
+      delayTime,
+    );
+
+    if (calcPlane.ctot != '' && delayTime > 3) {
+      if (
+        this.helperService.isTime1GreaterThanTime2(
+          possibleCTOTdueArrival,
+          calcPlane.ctot,
+        )
+      ) {
+        calcPlane.airspaces = await this.moveTimesOfAirspace(
+          initialAirspaces,
+          possibleCTOTdueArrival,
+          tempTTOT,
+        );
+        calcPlane.ctot = possibleCTOTdueArrival;
+        calcPlane.mostPenalizingAirspace = calcPlane.arrival;
+        calcPlane.reason = calcPlane.arrival + ' capactiy';
+        console.log(
+          `${calcPlane.callsign} new CTOT ${calcPlane.ctot} due to arrival airport (${calcPlane.arrival})`,
+        );
+      }
+    } else if (delayTime > 3) {
+      //Recalculate airspaces and make diffDueToArrival a CTOT valid
+      calcPlane.airspaces = await this.moveTimesOfAirspace(
+        initialAirspaces,
+        possibleCTOTdueArrival,
+        tempTTOT,
+      );
+      calcPlane.ctot = possibleCTOTdueArrival;
+      calcPlane.mostPenalizingAirspace = calcPlane.arrival;
+      calcPlane.reason = calcPlane.arrival + ' capactiy';
+      console.log(
+        `${calcPlane.callsign} new CTOT due to arrival airport (${calcPlane.arrival}) - ${calcPlane.ctot}`,
+      );
+    }
+    return calcPlane;
+  }
+
   async delayPlanes(planes: DelayedPlane[]): Promise<DelayedPlane[]> {
     const delayedPlanes: DelayedPlane[] = [];
     const airspaceAll: AirspaceAll[] = [];
+    const cadAirports: cadAirport[] =
+      await this.cadAirportService.getAirports();
 
     console.log(`Calculating ${planes.length} planes`);
 
@@ -349,57 +477,17 @@ export class SlotService {
           }
         }
 
-        const calcPlane = await this.calculatePlane(
-          plane,
+        let calcPlane = await this.calculatePlane(plane, tempTTOT, airspaceAll);
+
+        calcPlane = await this.calculatePlaneDestination(
+          plane.airspaces,
+          planes,
+          cadAirports,
+          calcPlane,
           tempTTOT,
-          airspaceAll,
         );
 
-        /*Making CTOT valid if:
-        1. existing ctot > new ctot (only if CTOT exists already).
-        2. (new CTOT - taxiTime) > timeNow.
-        3. (newCTOT - taxiTime) and timeNow diff is > 5.
-        */
-        if (calcPlane.ctot != '' && plane.ctot != '') {
-          if (
-            this.helperService.isTime1GreaterThanTime2(
-              plane.ctot,
-              calcPlane.ctot,
-            )
-          ) {
-            if (
-              this.helperService.isTime1GreaterThanTime2(
-                calcPlane.ctot,
-                this.helperService.getCurrentUTCTime(),
-              ) &&
-              this.helperService.getTimeDifferenceInMinutes(
-                this.helperService.getCurrentUTCTime(),
-                calcPlane.ctot,
-              ) > 5
-            ) {
-              plane = calcPlane;
-            }
-          }
-        } else if (calcPlane.ctot != '') {
-          if (
-            this.helperService.isTime1GreaterThanTime2(
-              this.helperService.removeMinutesFromTime(
-                calcPlane.ctot,
-                calcPlane.taxi,
-              ),
-              this.helperService.getCurrentUTCTime(),
-            ) &&
-            this.helperService.getTimeDifferenceInMinutes(
-              this.helperService.getCurrentUTCTime(),
-              this.helperService.removeMinutesFromTime(
-                calcPlane.ctot,
-                calcPlane.taxi,
-              ),
-            ) > 5
-          ) {
-            plane = calcPlane;
-          }
-        }
+        plane = await this.makeCTOTvalid(calcPlane, plane);
 
         const airspaceAllElement: AirspaceAll = {
           airspaces: plane.airspaces,
@@ -421,6 +509,55 @@ export class SlotService {
     }
 
     return delayedPlanes;
+  }
+
+  async makeCTOTvalid(
+    calcPlane: DelayedPlane,
+    plane: DelayedPlane,
+  ): Promise<DelayedPlane> {
+    /*Making CTOT valid if:
+        1. existing ctot > new ctot (only if CTOT exists already).
+        2. (new CTOT - taxiTime) > timeNow.
+        3. (newCTOT - taxiTime) and timeNow diff is > 5.
+        */
+    if (calcPlane.ctot != '' && plane.ctot != '') {
+      if (
+        this.helperService.isTime1GreaterThanTime2(plane.ctot, calcPlane.ctot)
+      ) {
+        if (
+          this.helperService.isTime1GreaterThanTime2(
+            calcPlane.ctot,
+            this.helperService.getCurrentUTCTime(),
+          ) &&
+          this.helperService.getTimeDifferenceInMinutes(
+            this.helperService.getCurrentUTCTime(),
+            calcPlane.ctot,
+          ) > 5
+        ) {
+          plane = calcPlane;
+        }
+      }
+    } else if (calcPlane.ctot != '') {
+      if (
+        this.helperService.isTime1GreaterThanTime2(
+          this.helperService.removeMinutesFromTime(
+            calcPlane.ctot,
+            calcPlane.taxi,
+          ),
+          this.helperService.getCurrentUTCTime(),
+        ) &&
+        this.helperService.getTimeDifferenceInMinutes(
+          this.helperService.getCurrentUTCTime(),
+          this.helperService.removeMinutesFromTime(
+            calcPlane.ctot,
+            calcPlane.taxi,
+          ),
+        ) > 5
+      ) {
+        plane = calcPlane;
+      }
+    }
+    return plane;
   }
 
   async moveTimesOfAirspace(

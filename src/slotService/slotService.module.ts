@@ -9,6 +9,7 @@ import { DatabaseModule } from 'src/database/database.module';
 import { SlotServiceProviders } from './slotService.providers';
 import { RouteService } from './route/route.service';
 import { HelperService } from './helper/helper.service';
+import { CadAirportService } from './cadAirport/cadAirport.service';
 
 @Module({
   imports: [HttpModule, DatabaseModule],
@@ -21,6 +22,7 @@ import { HelperService } from './helper/helper.service';
     VatsimDataService,
     RouteService,
     HelperService,
+    CadAirportService,
   ],
 })
 export class SlotServiceModule {}
