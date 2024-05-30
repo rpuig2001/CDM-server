@@ -11,6 +11,7 @@ export class DelayedPlaneService {
   constructor(
     // eslint-disable-next-line prettier/prettier
     @Inject(forwardRef(() => SlotService)) private readonly slotServiceService: SlotService,
+    // eslint-disable-next-line prettier/prettier
     @Inject(forwardRef(() => SlotService)) private readonly delayedPlaneService: DelayedPlaneService,
     private readonly helperService: HelperService,
     // eslint-disable-next-line prettier/prettier

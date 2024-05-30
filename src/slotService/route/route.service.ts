@@ -167,10 +167,12 @@ export class RouteService {
     const linesAirports = src.split('\n');
     linesAirports.forEach((line) => {
       const data = line.split(',');
-      const name = data[0];
-      const lat = parseFloat(data[1]);
-      const lon = parseFloat(data[2]);
-      waypoints.push({ name, lat, lon });
+      if (data[0] == 'A') {
+        const name = data[1];
+        const lat = parseFloat(data[3]);
+        const lon = parseFloat(data[4]);
+        waypoints.push({ name, lat, lon });
+      }
     });
 
     return waypoints;
@@ -337,6 +339,8 @@ export class RouteService {
           if (await this.isWaypointInsideAirspace(point, airspace)) {
             if (entry == '') {
               entry = point.name;
+            } else if (flightPath[flightPath.length - 1].name == point.name) {
+              exit = point.name;
             }
           } else if (entry != '') {
             exit = point.name;
