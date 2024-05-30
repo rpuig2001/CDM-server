@@ -59,8 +59,8 @@ export class SlotService {
           existingPlane.atot = this.helperService.getCurrentUTCTime();
           existingPlane.modify = true;
 
-          let updateEOBT = false;
-          /* Modify EOBT only if CTOT exists and diff between timeNow and CTOT > 15 */
+          let recalculateAirspaces = false;
+          /* Recalculate Airspaces only if CTOT exists and diff between timeNow and CTOT > 15 */
           if (existingPlane.ctot != '') {
             if (
               this.helperService.getTimeDifferenceInMinutes(
@@ -68,13 +68,13 @@ export class SlotService {
                 existingPlane.ctot,
               ) > 15
             ) {
-              updateEOBT = true;
+              recalculateAirspaces = true;
             }
           } else {
-            updateEOBT = true;
+            recalculateAirspaces = true;
           }
 
-          if (updateEOBT) {
+          if (recalculateAirspaces) {
             let previousTTOT = this.helperService.addMinutesToTime(
               existingPlane.eobt,
               existingPlane.taxi,
@@ -84,16 +84,7 @@ export class SlotService {
               previousTTOT = existingPlane.ctot;
             }
 
-            if (!existingPlane.cdm) {
-              existingPlane.eobt = this.helperService.removeMinutesFromTime(
-                this.helperService.getCurrentUTCTime(),
-                existingPlane.taxi,
-              );
-            }
-            const actualTTOT = this.helperService.addMinutesToTime(
-              existingPlane.eobt,
-              existingPlane.taxi,
-            );
+            const actualTTOT = this.helperService.getCurrentUTCTime();
             existingPlane.airspaces = await this.moveTimesOfAirspace(
               existingPlane.airspaces,
               actualTTOT,
