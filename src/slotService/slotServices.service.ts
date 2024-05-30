@@ -169,7 +169,6 @@ export class SlotService {
         ctot: '',
         atot: myAtot,
         taxi: 15,
-        delayTime: 0,
         mostPenalizingAirspace: '',
         reason: '',
         airspaces: myairspaces,
@@ -603,15 +602,10 @@ export class SlotService {
   ): DelayedPlane {
     if (airspaceToFix === null) {
       plane.ctot = '';
-      plane.delayTime = 0;
       plane.mostPenalizingAirspace = '';
       plane.reason = '';
     } else {
       plane.ctot = newdeptime;
-      plane.delayTime = this.getDifCTOTandEOBT(
-        newdeptime,
-        this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
-      );
       plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
       plane.reason = `${plane.mostPenalizingAirspace} Airspace Capacity`;
     }

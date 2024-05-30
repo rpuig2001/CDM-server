@@ -25,9 +25,6 @@ export class DelayedPlane {
   ctot: string;
 
   @Prop()
-  delayTime: number;
-
-  @Prop()
   atot: string;
 
   @Prop()
