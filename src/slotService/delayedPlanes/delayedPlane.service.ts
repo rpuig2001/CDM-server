@@ -70,7 +70,7 @@ export class DelayedPlaneService {
         );
 
         //Get Planes
-        const planes = await this.delayedPlaneService.getAllDelayedPlanes();
+        const planes = await this.getAllDelayedPlanes();
         //Get cadAirports
         const cadAirports: cadAirport[] =
           await this.cadAirportService.getAirports();
@@ -124,7 +124,7 @@ export class DelayedPlaneService {
         );
 
         //Get Planes
-        const planes = await this.delayedPlaneService.getAllDelayedPlanes();
+        const planes = await this.getAllDelayedPlanes();
         //Get cadAirports
         const cadAirports: cadAirport[] =
           await this.cadAirportService.getAirports();
