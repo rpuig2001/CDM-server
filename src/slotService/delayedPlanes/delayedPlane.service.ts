@@ -141,9 +141,12 @@ export class DelayedPlaneService {
       }
 
       //Update DB Plane
-      const dbPlane = await this.slotServiceModel.findOne({ callsign }).exec();
-      dbPlane.set(plane);
-      await dbPlane.save();
+      const dbPlane = await this.slotServiceModel
+        .findOneAndUpdate({ callsign }, plane, {
+          new: true,
+          runValidators: true,
+        })
+        .exec();
 
       return plane;
     }
