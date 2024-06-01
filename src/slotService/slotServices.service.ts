@@ -350,7 +350,7 @@ export class SlotService {
                 this.helperService.getTimeDifferenceInMinutes(
                   arrivalTime,
                   otherArrivalTime,
-                ) < Math.ceil(60 / rate)
+                ) <= Math.ceil(60 / rate)
               ) {
                 arrivalTime = this.helperService.addMinutesToTime(
                   otherArrivalTime,
@@ -380,7 +380,7 @@ export class SlotService {
       delayTime,
     );
 
-    if (calcPlane.ctot != '' && delayTime > 3) {
+    if (calcPlane.ctot != '' /*&& delayTime > 3*/) {
       if (
         this.helperService.isTime1GreaterThanTime2(
           possibleCTOTdueArrival,
