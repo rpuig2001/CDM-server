@@ -327,17 +327,6 @@ export class SlotService {
     calcPlane: DelayedPlane,
     tempTTOT: string,
   ): Promise<DelayedPlane> {
-    let initialTTOT = this.helperService.addMinutesToTime(
-      initialPlane.eobt,
-      initialPlane.taxi,
-    );
-    if (initialPlane.eobt != '') {
-      initialTTOT = this.helperService.addMinutesToTime(
-        initialPlane.tsat,
-        initialPlane.taxi,
-      );
-    }
-
     let delayTime = 0;
     if (initialPlane.airspaces.length > 0) {
       const initialArrivalTime =
@@ -404,7 +393,7 @@ export class SlotService {
         calcPlane.airspaces = await this.moveTimesOfAirspace(
           initialPlane.airspaces,
           possibleCTOTdueArrival,
-          initialTTOT,
+          tempTTOT,
         );
         calcPlane.ctot = possibleCTOTdueArrival;
         calcPlane.mostPenalizingAirspace = calcPlane.arrival;
@@ -418,7 +407,7 @@ export class SlotService {
       calcPlane.airspaces = await this.moveTimesOfAirspace(
         initialPlane.airspaces,
         possibleCTOTdueArrival,
-        initialTTOT,
+        tempTTOT,
       );
       calcPlane.ctot = possibleCTOTdueArrival;
       calcPlane.mostPenalizingAirspace = calcPlane.arrival;
