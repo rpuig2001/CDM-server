@@ -350,11 +350,11 @@ export class SlotService {
                 this.helperService.getTimeDifferenceInMinutes(
                   arrivalTime,
                   otherArrivalTime,
-                ) <= Math.ceil(60 / rate)
+                ) <= Math.floor(60 / rate)
               ) {
                 arrivalTime = this.helperService.addMinutesToTime(
                   otherArrivalTime,
-                  Math.ceil(60 / rate),
+                  Math.floor(60 / rate),
                 );
                 /*console.log(
                   `${calcPlane.callsign} using arrivalTime: ${initialArrivalTime} / new arrivalTime ${arrivalTime}`,
