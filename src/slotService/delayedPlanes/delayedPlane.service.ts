@@ -70,6 +70,11 @@ export class DelayedPlaneService {
           this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
           airspacesWorkload,
         );
+        let initialPlane = plane;
+        initialPlane = await this.slotServiceService.makeCTOTvalid(
+          calcPlane,
+          plane,
+        );
 
         //Get Planes
         const planes = await this.getAllDelayedPlanes();
@@ -85,7 +90,10 @@ export class DelayedPlaneService {
           this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
         );
 
-        plane = await this.slotServiceService.makeCTOTvalid(calcPlane, plane);
+        plane = await this.slotServiceService.makeCTOTvalid(
+          calcPlane,
+          initialPlane,
+        );
       } else if (plane && tsat.length === 0) {
         if (plane.ctot != '') {
           previousTTOT = plane.ctot;
@@ -126,6 +134,11 @@ export class DelayedPlaneService {
           this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
           airspacesWorkload,
         );
+        let initialPlane = plane;
+        initialPlane = await this.slotServiceService.makeCTOTvalid(
+          calcPlane,
+          initialPlane,
+        );
 
         //Get Planes
         const planes = await this.getAllDelayedPlanes();
@@ -141,7 +154,10 @@ export class DelayedPlaneService {
           this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
         );
 
-        plane = await this.slotServiceService.makeCTOTvalid(calcPlane, plane);
+        plane = await this.slotServiceService.makeCTOTvalid(
+          calcPlane,
+          initialPlane,
+        );
       }
 
       //Update DB Plane
