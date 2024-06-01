@@ -380,7 +380,7 @@ export class SlotService {
       delayTime,
     );
 
-    if (calcPlane.ctot != '' /*&& delayTime > 3*/) {
+    if (calcPlane.ctot != '' && delayTime > 0) {
       if (
         this.helperService.isTime1GreaterThanTime2(
           possibleCTOTdueArrival,
