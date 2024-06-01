@@ -85,7 +85,9 @@ export class DelayedPlaneService {
 
         plane = await this.slotServiceService.makeCTOTvalid(calcPlane, plane);
       } else if (plane && tsat.length === 0) {
-        if (plane.tsat != '') {
+        if (plane.ctot != ''){
+          previousTTOT = plane.ctot;
+        } else if (plane.tsat != '') {
           previousTTOT = this.helperService.addMinutesToTime(
             plane.tsat,
             plane.taxi,
