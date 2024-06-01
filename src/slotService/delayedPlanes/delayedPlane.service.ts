@@ -76,7 +76,7 @@ export class DelayedPlaneService {
           await this.cadAirportService.getAirports();
 
         calcPlane = await this.slotServiceService.calculatePlaneDestination(
-          plane.airspaces,
+          plane,
           planes,
           cadAirports,
           calcPlane,
@@ -85,7 +85,7 @@ export class DelayedPlaneService {
 
         plane = await this.slotServiceService.makeCTOTvalid(calcPlane, plane);
       } else if (plane && tsat.length === 0) {
-        if (plane.ctot != ''){
+        if (plane.ctot != '') {
           previousTTOT = plane.ctot;
         } else if (plane.tsat != '') {
           previousTTOT = this.helperService.addMinutesToTime(
@@ -132,7 +132,7 @@ export class DelayedPlaneService {
           await this.cadAirportService.getAirports();
 
         calcPlane = await this.slotServiceService.calculatePlaneDestination(
-          plane.airspaces,
+          plane,
           planes,
           cadAirports,
           calcPlane,

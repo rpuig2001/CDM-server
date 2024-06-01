@@ -189,6 +189,9 @@ export class SlotService {
           airspaces: foundPlane.airspaces,
         });
       }
+      if (foundPlane.callsign == callsign) {
+        return airspaceAll;
+      }
     }
     return airspaceAll;
   }
@@ -318,16 +321,27 @@ export class SlotService {
   }
 
   async calculatePlaneDestination(
-    initialAirspaces: AirspaceComplete[],
+    initialPlane: DelayedPlane,
     planes: DelayedPlane[],
     cadAirports: cadAirport[],
     calcPlane: DelayedPlane,
     tempTTOT: string,
   ): Promise<DelayedPlane> {
+    let initialTTOT = this.helperService.addMinutesToTime(
+      initialPlane.eobt,
+      initialPlane.taxi,
+    );
+    if (initialPlane.eobt != '') {
+      initialTTOT = this.helperService.addMinutesToTime(
+        initialPlane.tsat,
+        initialPlane.taxi,
+      );
+    }
+
     let delayTime = 0;
-    if (initialAirspaces.length > 0) {
+    if (initialPlane.airspaces.length > 0) {
       const initialArrivalTime =
-        initialAirspaces[initialAirspaces.length - 1].exitTime;
+        initialPlane.airspaces[initialPlane.airspaces.length - 1].exitTime;
       const rate = await this.getAirportRate(calcPlane.arrival, cadAirports);
 
       let arrivalTime = initialArrivalTime;
@@ -388,9 +402,9 @@ export class SlotService {
         )
       ) {
         calcPlane.airspaces = await this.moveTimesOfAirspace(
-          initialAirspaces,
+          initialPlane.airspaces,
           possibleCTOTdueArrival,
-          tempTTOT,
+          initialTTOT,
         );
         calcPlane.ctot = possibleCTOTdueArrival;
         calcPlane.mostPenalizingAirspace = calcPlane.arrival;
@@ -399,12 +413,12 @@ export class SlotService {
           `${calcPlane.callsign} new CTOT ${calcPlane.ctot} due to arrival airport (${calcPlane.arrival})`,
         );
       }
-    } else if (delayTime > 3) {
+    } else if (delayTime > 0) {
       //Recalculate airspaces and make diffDueToArrival a CTOT valid
       calcPlane.airspaces = await this.moveTimesOfAirspace(
-        initialAirspaces,
+        initialPlane.airspaces,
         possibleCTOTdueArrival,
-        tempTTOT,
+        initialTTOT,
       );
       calcPlane.ctot = possibleCTOTdueArrival;
       calcPlane.mostPenalizingAirspace = calcPlane.arrival;
@@ -470,7 +484,7 @@ export class SlotService {
         let calcPlane = await this.calculatePlane(plane, tempTTOT, airspaceAll);
 
         calcPlane = await this.calculatePlaneDestination(
-          plane.airspaces,
+          plane,
           planes,
           cadAirports,
           calcPlane,
