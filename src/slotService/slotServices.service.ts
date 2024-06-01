@@ -350,7 +350,7 @@ export class SlotService {
                 this.helperService.getTimeDifferenceInMinutes(
                   arrivalTime,
                   otherArrivalTime,
-                ) <= Math.floor(60 / rate)
+                ) < Math.floor(60 / rate)
               ) {
                 arrivalTime = this.helperService.addMinutesToTime(
                   otherArrivalTime,
