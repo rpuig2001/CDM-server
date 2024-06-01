@@ -35,10 +35,10 @@ export class DelayedPlaneService {
     let plane = await this.getDelayedPlaneByCallsign(callsign);
     let previousTTOT;
     if (plane) {
-      if (plane.ctot != '') {
-        previousTTOT = plane.ctot;
-      } else if (tsat.length === 4) {
-        if (plane.tsat != '') {
+      if (tsat.length === 4) {
+        if (plane.ctot != '') {
+          previousTTOT = plane.ctot;
+        } else if (plane.tsat != '') {
           previousTTOT = this.helperService.addMinutesToTime(
             plane.tsat,
             plane.taxi,
