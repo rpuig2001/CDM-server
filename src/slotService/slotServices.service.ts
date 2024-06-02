@@ -43,7 +43,7 @@ export class SlotService {
 
       const isAirborne = plane.groundspeed > 80;
 
-      const existingPlane = existingPlanes.find((existingPlane) => {
+      let existingPlane = existingPlanes.find((existingPlane) => {
         return existingPlane.callsign === plane.callsign;
       });
 
@@ -56,8 +56,10 @@ export class SlotService {
             existingPlane.route === flight_plan.route
           );
         });
+
         if (!modifiedPlaneFound) {
-          existingPlane.callsign = existingPlane.callsign + '_toDelete';
+          this.delayedPlaneService.deletePlane(plane.callsign);
+          existingPlane = null;
         }
       }
 

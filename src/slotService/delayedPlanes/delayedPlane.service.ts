@@ -27,6 +27,10 @@ export class DelayedPlaneService {
     return await this.slotServiceModel.find({ ctot: { $ne: '' } }).exec();
   }
 
+  async deletePlane(callsign: string) {
+    await this.slotServiceModel.deleteOne({ callsign: callsign }).exec();
+  }
+
   async setCDM_TSAT(
     callsign: string,
     taxi: number,
