@@ -22,4 +22,15 @@ export class AppService {
       console.error(`HTTP request failed: ${error.message}`);
     }
   }
+
+  @Cron('*/1 * * * *')
+  async handleCronProcessForMasterAirports() {
+    try {
+      await axios.get(
+        'https://cdm-server-production.up.railway.app/airport/removedUnusedMasters',
+      );
+    } catch (error) {
+      console.error(`HTTP request failed: ${error.message}`);
+    }
+  }
 }

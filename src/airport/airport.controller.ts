@@ -50,4 +50,9 @@ export class AirportController {
     console.log(`Removed all entries for ${airport}`);
     this.airportService.removeByAirport(airport);
   }
+
+  @Post('removedUnusedMasters')
+  setQueryToRemoveUnusedMasters() {
+    this.airportService.removeUnused();
+  }
 }
