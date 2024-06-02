@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { CreateAirportDto } from './dto/create-airport.dto';
 import { Airport } from './schemas/airport.schema';
 import { Atc } from 'src/plane/interface/atc.interface';
+import axios from 'axios';
 
 @Injectable()
 export class AirportService {
