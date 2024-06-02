@@ -50,8 +50,11 @@ export class AirportService {
   }
 
   async removeUnused() {
-    const atcs = await this.getOnlineAtc();
     const masters = await this.findAll();
+    let atcs: Atc[] = [];
+    if (masters.length > 0) {
+      atcs = await this.getOnlineAtc();
+    }
     for (const master of masters) {
       let found = false;
       for (const atc of atcs) {
