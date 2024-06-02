@@ -239,7 +239,7 @@ export class DelayedPlaneService {
     }
 
     const deletePromises = Array.from(dbPlanesMap.values()).map((dbPlane) =>
-      this.slotServiceModel.deleteOne({ callsign: dbPlane.callsign }),
+      this.slotServiceModel.deleteMany({ callsign: dbPlane.callsign }),
     );
 
     await Promise.all(deletePromises);

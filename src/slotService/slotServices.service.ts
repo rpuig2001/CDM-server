@@ -44,13 +44,22 @@ export class SlotService {
       const isAirborne = plane.groundspeed > 80;
 
       const existingPlane = existingPlanes.find((existingPlane) => {
-        return (
-          existingPlane.callsign === plane.callsign &&
-          existingPlane.departure === flight_plan.departure &&
-          existingPlane.arrival === flight_plan.arrival &&
-          existingPlane.route === flight_plan.route
-        );
+        return existingPlane.callsign === plane.callsign;
       });
+
+      if (existingPlane) {
+        const modifiedPlaneFound = existingPlanes.find((existingPlane) => {
+          return (
+            existingPlane.callsign === plane.callsign &&
+            existingPlane.departure === flight_plan.departure &&
+            existingPlane.arrival === flight_plan.arrival &&
+            existingPlane.route === flight_plan.route
+          );
+        });
+        if (!modifiedPlaneFound) {
+          existingPlane.callsign = existingPlane.callsign + '_toDelete';
+        }
+      }
 
       if (existingPlane) {
         if (isAirborne == true && existingPlane.atot == '') {
@@ -306,6 +315,7 @@ export class SlotService {
           plane = this.modifyPlaneData(plane, newTakeOffTime, null);
           //console.log(`${plane.callsign} - Is not regulated regulated`);
         }
+        console.log(`${plane.callsign} - Set CTOT ${newTakeOffTime}.`);
       }
     }
     return plane;
@@ -471,6 +481,8 @@ export class SlotService {
         }
 
         let calcPlane = await this.calculatePlane(plane, tempTTOT, airspaceAll);
+        let initialPlane = plane;
+        initialPlane = await this.makeCTOTvalid(calcPlane, plane);
 
         calcPlane = await this.calculatePlaneDestination(
           plane,
@@ -479,8 +491,7 @@ export class SlotService {
           calcPlane,
           tempTTOT,
         );
-
-        plane = await this.makeCTOTvalid(calcPlane, plane);
+        plane = await this.makeCTOTvalid(calcPlane, initialPlane);
 
         const airspaceAllElement: AirspaceAll = {
           airspaces: plane.airspaces,
@@ -527,7 +538,12 @@ export class SlotService {
             calcPlane.ctot,
           ) > 5
         ) {
+          console.log(`validated ${calcPlane.ctot} for ${calcPlane.callsign}`);
           plane = calcPlane;
+        } else {
+          console.log(
+            `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign}`,
+          );
         }
       }
     } else if (calcPlane.ctot != '') {
@@ -547,7 +563,12 @@ export class SlotService {
           ),
         ) > 5
       ) {
+        console.log(`validated ${calcPlane.ctot} for ${calcPlane.callsign}`);
         plane = calcPlane;
+      } else {
+        console.log(
+          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign}`,
+        );
       }
     }
     return plane;
