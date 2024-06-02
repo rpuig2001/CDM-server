@@ -26,7 +26,7 @@ export class AppService {
   @Cron('*/1 * * * *')
   async handleCronProcessForMasterAirports() {
     try {
-      await axios.get(
+      await axios.post(
         'https://cdm-server-production.up.railway.app/airport/removedUnusedMasters',
       );
     } catch (error) {
