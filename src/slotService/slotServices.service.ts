@@ -315,7 +315,6 @@ export class SlotService {
           plane = this.modifyPlaneData(plane, newTakeOffTime, null);
           //console.log(`${plane.callsign} - Is not regulated regulated`);
         }
-        console.log(`${plane.callsign} - Set CTOT ${newTakeOffTime}.`);
       }
     }
     return plane;
