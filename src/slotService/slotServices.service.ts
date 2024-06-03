@@ -303,7 +303,7 @@ export class SlotService {
           );
         }
         console.log(
-          `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
+          `${plane.callsign} - New CTOT ${newTakeOffTime} due to ${airspaceToFix.airspaceName} re-calculating...`,
         );
         if (
           this.helperService.getTimeDifferenceInMinutes(
