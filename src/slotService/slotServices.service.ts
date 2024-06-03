@@ -305,6 +305,17 @@ export class SlotService {
         console.log(
           `${plane.callsign} - New CTOT ${newTakeOffTime} re-calculating...`,
         );
+        if (
+          this.helperService.getTimeDifferenceInMinutes(
+            previousTakeOffTime,
+            newTakeOffTime,
+          ) > 120
+        ) {
+          console.log(
+            `${plane.callsign} - CTOT is more than 2h, stopping re-calculation.`,
+          );
+          isOverloaded = false;
+        }
       } else {
         isOverloaded = false;
 
