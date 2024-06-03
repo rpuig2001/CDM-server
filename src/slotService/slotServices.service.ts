@@ -318,7 +318,9 @@ export class SlotService {
         }
       } else {
         isOverloaded = false;
+      }
 
+      if (!isOverloaded) {
         if (previousTakeOffTime !== newTakeOffTime) {
           plane = this.modifyPlaneData(plane, newTakeOffTime, airspaceToFix);
           /*console.log(
