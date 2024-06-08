@@ -214,11 +214,7 @@ export class DelayedPlaneService {
           try {
             await dbPlane.save();
           } catch (error: any) {
-            if (error.name === 'VersionError') {
-              console.error(`Plane ${dbPlane.callsign} not found in database`);
-            } else {
-              console.error('Error saving to DB:', error);
-            }
+            console.error(`Error saving ${dbPlane.callsign} to DB`);
           }
         }
         dbPlanesMap.delete(plane.callsign);
@@ -226,7 +222,7 @@ export class DelayedPlaneService {
     }
   }
 
-  async updatePlanes(planes: DelayedPlane[]): Promise<void> {
+  async updatePlanes(planes: DelayedPlane[]) {
     const allPlanes = await this.slotServiceModel.find();
     const dbPlanesMap = new Map(
       allPlanes.map((plane) => [plane.callsign, plane]),
@@ -242,11 +238,7 @@ export class DelayedPlaneService {
           try {
             await dbPlane.save();
           } catch (error: any) {
-            if (error.name === 'VersionError') {
-              console.error(`Plane ${dbPlane.callsign} not found in database`);
-            } else {
-              console.error('Error saving to DB:', error);
-            }
+            console.error(`Error saving ${dbPlane.callsign} to DB`);
           }
         }
         dbPlanesMap.delete(plane.callsign);
@@ -257,19 +249,17 @@ export class DelayedPlaneService {
         try {
           await newPlane.save();
         } catch (error: any) {
-          if (error.name === 'VersionError') {
-            console.error(`Plane ${dbPlane.callsign} not found in database`);
-          } else {
-            console.error('Error saving to DB:', error);
-          }
+          console.error(`Error saving ${dbPlane.callsign} to DB`);
         }
       }
     }
 
-    const deletePromises = Array.from(dbPlanesMap.values()).map((dbPlane) =>
-      this.slotServiceModel.deleteMany({ callsign: dbPlane.callsign }),
-    );
-
-    await Promise.all(deletePromises);
+    try {
+      Array.from(dbPlanesMap.values()).map((dbPlane) =>
+        this.slotServiceModel.deleteMany({ callsign: dbPlane.callsign }),
+      );
+    } catch (error: any) {
+      console.error(`Error removing unused planees from DB`);
+    }
   }
 }

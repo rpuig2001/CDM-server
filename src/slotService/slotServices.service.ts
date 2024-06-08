@@ -105,7 +105,7 @@ export class SlotService {
         });
 
         if (!modifiedPlaneFound) {
-          this.delayedPlaneService.deletePlane(plane.callsign);
+          this.delayedPlaneService.deletePlane(existingPlane.callsign);
           existingPlane = null;
         }
       }
