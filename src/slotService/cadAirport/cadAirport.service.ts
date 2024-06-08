@@ -6,8 +6,20 @@ import { cadAirport } from './interface/cadAirport.interface';
 @Injectable()
 export class CadAirportService {
   private async fetchData(url: string): Promise<string> {
-    const response = await axios.get(url);
-    return response.data;
+    try {
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(`Error fetching data from ${url}`);
+        if (error.response?.status === 500) {
+          console.error('Internal Server Error');
+        }
+      } else {
+        console.error('Unexpected error:', error);
+      }
+      return null;
+    }
   }
 
   private async parseData(data: string): Promise<cadAirport[]> {
@@ -21,8 +33,10 @@ export class CadAirportService {
       if (line.startsWith('URL')) {
         const url = line.split(',')[1];
         const additionalData = await this.fetchData(url.trim());
-        const additionalAirports = await this.parseData(additionalData);
-        airports.push(...additionalAirports);
+        if (additionalData) {
+          const additionalAirports = await this.parseData(additionalData);
+          airports.push(...additionalAirports);
+        }
       } else if (line.trim()) {
         const [icao, rate] = line.split(',');
         airports.push({

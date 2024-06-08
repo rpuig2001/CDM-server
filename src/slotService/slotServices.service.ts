@@ -61,6 +61,7 @@ export class SlotService {
         'LE',
         'LF',
         'LG',
+        'LC',
         'LH',
         'LI',
         'LJ',
@@ -71,6 +72,10 @@ export class SlotService {
         'LS',
         'LZ',
         'LD',
+        'LT',
+        'DA',
+        'DC',
+        'GM',
       ];
       const isSchengen = schengenArea.find((countryCode) => {
         return (
@@ -79,6 +84,7 @@ export class SlotService {
         );
       });
       if (!isSchengen) {
+        //console.log(`Flightplan does not depart/land in schengen area, skipping`);
         continue;
       }
 
