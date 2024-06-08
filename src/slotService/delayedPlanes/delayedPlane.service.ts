@@ -211,7 +211,15 @@ export class DelayedPlaneService {
         if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
           //console.log(`Updating ${dbPlane.callsign}`);
           dbPlane.set(plane);
-          await dbPlane.save();
+          try {
+            await dbPlane.save();
+          } catch (error: any) {
+            if (error.name === 'VersionError') {
+              console.error(`Plane ${dbPlane.callsign} not found in database`);
+            } else {
+              console.error('Error saving to DB:', error);
+            }
+          }
         }
         dbPlanesMap.delete(plane.callsign);
       }
@@ -231,14 +239,30 @@ export class DelayedPlaneService {
           //console.log(`Updating aircraft ${dbPlane.callsign}`);
           plane.modify = false;
           dbPlane.set(plane);
-          await dbPlane.save();
+          try {
+            await dbPlane.save();
+          } catch (error: any) {
+            if (error.name === 'VersionError') {
+              console.error(`Plane ${dbPlane.callsign} not found in database`);
+            } else {
+              console.error('Error saving to DB:', error);
+            }
+          }
         }
         dbPlanesMap.delete(plane.callsign);
       } else {
         //console.log(`Saving aircraft ${plane.callsign}`);
         plane.modify = false;
         const newPlane = new this.slotServiceModel(plane);
-        await newPlane.save();
+        try {
+          await newPlane.save();
+        } catch (error: any) {
+          if (error.name === 'VersionError') {
+            console.error(`Plane ${dbPlane.callsign} not found in database`);
+          } else {
+            console.error('Error saving to DB:', error);
+          }
+        }
       }
     }
 
