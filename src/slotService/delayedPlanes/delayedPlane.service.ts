@@ -208,7 +208,10 @@ export class DelayedPlaneService {
     for (const plane of planes) {
       const dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
-        if (JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane)) {
+        if (
+          JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane) &&
+          plane.tsat == dbPlane.tsat
+        ) {
           //console.log(`Updating ${dbPlane.callsign}`);
           dbPlane.set(plane);
           try {
@@ -231,7 +234,7 @@ export class DelayedPlaneService {
     for (const plane of planes) {
       const dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
-        if (plane.modify) {
+        if (plane.modify && plane.tsat == dbPlane.tsat) {
           //console.log(`Updating aircraft ${dbPlane.callsign}`);
           plane.modify = false;
           dbPlane.set(plane);
