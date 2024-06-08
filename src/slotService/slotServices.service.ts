@@ -41,6 +41,47 @@ export class SlotService {
         continue;
       }
 
+      //Check Schengen DEP or DEST
+      const schengenArea = [
+        'BI',
+        'EB',
+        'ED',
+        'EE',
+        'EF',
+        'EH',
+        'EK',
+        'EL',
+        'EN',
+        'EP',
+        'ES',
+        'ET',
+        'EV',
+        'EY',
+        'GC',
+        'LE',
+        'LF',
+        'LG',
+        'LH',
+        'LI',
+        'LJ',
+        'LK',
+        'LM',
+        'LO',
+        'LP',
+        'LS',
+        'LZ',
+        'LD',
+      ];
+      const isSchengen = schengenArea.find((countryCode) => {
+        return (
+          countryCode === flight_plan.departure.substring(0, 2) ||
+          countryCode === flight_plan.arrival.substring(0, 2)
+        );
+      });
+      if (!isSchengen) {
+        continue;
+      }
+
       const isAirborne = plane.groundspeed > 80;
 
       let existingPlane = existingPlanes.find((existingPlane) => {
