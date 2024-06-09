@@ -217,7 +217,7 @@ export class DelayedPlaneService {
           try {
             await dbPlane.save();
           } catch (error: any) {
-            console.error(`Error saving ${dbPlane.callsign} to DB`);
+            console.error(`Error saving ${dbPlane.callsign} to DB: ${error}`);
           }
         }
         dbPlanesMap.delete(plane.callsign);
@@ -241,7 +241,7 @@ export class DelayedPlaneService {
           try {
             await dbPlane.save();
           } catch (error: any) {
-            console.error(`Error saving ${dbPlane.callsign} to DB`);
+            console.error(`Error saving ${dbPlane.callsign} to DB: ${error}`);
           }
         }
         dbPlanesMap.delete(plane.callsign);
@@ -252,15 +252,16 @@ export class DelayedPlaneService {
         try {
           await newPlane.save();
         } catch (error: any) {
-          console.error(`Error saving ${dbPlane.callsign} to DB`);
+          console.error(`Error saving ${dbPlane.callsign} to DB: ${error}`);
         }
       }
     }
 
     try {
-      Array.from(dbPlanesMap.values()).map((dbPlane) =>
+      const deletePromises = Array.from(dbPlanesMap.values()).map((dbPlane) =>
         this.slotServiceModel.deleteMany({ callsign: dbPlane.callsign }),
       );
+      await Promise.all(deletePromises);
     } catch (error: any) {
       console.error(`Error removing unused planees from DB`);
     }
