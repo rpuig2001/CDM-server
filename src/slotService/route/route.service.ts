@@ -38,6 +38,7 @@ export class RouteService {
           capacity: planedata.capacity,
           entryTime: planedata.entryTime,
           exitTime: planedata.exitTime,
+          reason: '',
         });
       }
     }
@@ -354,6 +355,7 @@ export class RouteService {
             capacity: airspace.capacity,
             entryTime: entry,
             exitTime: exit,
+            reason: '',
           });
         } else if (entry != '' && flightPath.length > 1) {
           intersections.push({
@@ -361,6 +363,7 @@ export class RouteService {
             capacity: airspace.capacity,
             entryTime: entry,
             exitTime: flightPath[flightPath.length - 2].name,
+            reason: '',
           });
         }
       }

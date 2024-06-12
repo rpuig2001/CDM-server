@@ -7,6 +7,7 @@ import { AirspaceAll } from './airspace/interface/airspaces-all.interface';
 import { AirspaceCounter } from './airspace/interface/airspace-counter.interface';
 import { AirspaceComplete } from './airspace/interface/airspace-complete.interface';
 import { HelperService } from './helper/helper.service';
+import { RestrictionService } from './restriction/restriction.service';
 import { cadAirport } from './cadAirport/interface/cadAirport.interface';
 
 @Injectable()
@@ -17,17 +18,20 @@ export class SlotService {
     private readonly routeService: RouteService,
     private readonly helperService: HelperService,
     private readonly cadAirportService: CadAirportService,
+    private readonly restrictionService: RestrictionService,
   ) {}
 
   async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
     console.log(`Processing ${planes.length} planes`);
     const delayedPlanes: DelayedPlane[] = [];
-    const [waypoints, airways, airspaces, existingPlanes] = await Promise.all([
-      this.routeService.getWaypoints(),
-      this.routeService.getAirways(),
-      this.routeService.getAirspaces(),
-      this.delayedPlaneService.getAllDelayedPlanes(),
-    ]);
+    const [waypoints, airways, airspaces, existingPlanes, restrictions] =
+      await Promise.all([
+        this.routeService.getWaypoints(),
+        this.routeService.getAirways(),
+        this.routeService.getAirspaces(),
+        this.delayedPlaneService.getAllDelayedPlanes(),
+        this.restrictionService.getRestrictions(),
+      ]);
 
     let counter = 1;
     for (const plane of planes) {
@@ -209,6 +213,15 @@ export class SlotService {
         myAtot = this.helperService.getCurrentUTCTime();
       }
 
+      for (const a of myairspaces) {
+        for (const r of restrictions) {
+          if (a.airspace == r.airspace) {
+            a.capacity = r.capacity;
+            a.reason = r.reason;
+          }
+        }
+      }
+
       delayedPlanes.push({
         callsign: plane.callsign,
         departure: flight_plan.departure,
@@ -219,7 +232,6 @@ export class SlotService {
         atot: myAtot,
         taxi: 15,
         mostPenalizingAirspace: '',
-        reason: '',
         airspaces: myairspaces,
         route: flight_plan.route,
         modify: true,
@@ -468,7 +480,6 @@ export class SlotService {
         );
         calcPlane.ctot = possibleCTOTdueArrival;
         calcPlane.mostPenalizingAirspace = calcPlane.arrival;
-        calcPlane.reason = calcPlane.arrival + ' Aerodrome Capacity';
         console.log(
           `${calcPlane.callsign} new CTOT ${calcPlane.ctot} due to arrival airport (${calcPlane.arrival})`,
         );
@@ -482,7 +493,6 @@ export class SlotService {
       );
       calcPlane.ctot = possibleCTOTdueArrival;
       calcPlane.mostPenalizingAirspace = calcPlane.arrival;
-      calcPlane.reason = calcPlane.arrival + ' Aerodrome Capacity';
       console.log(
         `${calcPlane.callsign} new CTOT due to arrival airport (${calcPlane.arrival}) - ${calcPlane.ctot}`,
       );
@@ -491,10 +501,11 @@ export class SlotService {
   }
 
   async delayPlanes(planes: DelayedPlane[]): Promise<DelayedPlane[]> {
+    const restrictions = await this.restrictionService.getRestrictions();
     const delayedPlanes: DelayedPlane[] = [];
     const airspaceAll: AirspaceAll[] = [];
     const cadAirports: cadAirport[] =
-      await this.cadAirportService.getAirports();
+      await this.cadAirportService.getAirports(restrictions);
 
     console.log(`Calculating ${planes.length} planes`);
 
@@ -679,11 +690,9 @@ export class SlotService {
     if (airspaceToFix === null) {
       plane.ctot = '';
       plane.mostPenalizingAirspace = '';
-      plane.reason = '';
     } else {
       plane.ctot = newdeptime;
       plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
-      plane.reason = `${plane.mostPenalizingAirspace} Airspace Capacity`;
     }
     return plane;
   }

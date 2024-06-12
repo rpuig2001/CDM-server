@@ -3,4 +3,5 @@ export interface AirspaceComplete {
   capacity: number;
   entryTime: string;
   exitTime: string;
+  reason: string;
 }

@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { cadAirport } from './interface/cadAirport.interface';
+import { RestrictionModel } from '../restriction/restriction.model';
 
 @Injectable()
 export class CadAirportService {
@@ -42,6 +43,7 @@ export class CadAirportService {
         airports.push({
           icao: icao.trim(),
           rate: parseInt(rate.trim(), 10),
+          reason: '',
         });
       }
     }
@@ -49,10 +51,23 @@ export class CadAirportService {
     return airports;
   }
 
-  public async getAirports(): Promise<cadAirport[]> {
+  public async getAirports(
+    restrictions: RestrictionModel[],
+  ): Promise<cadAirport[]> {
     const url =
       'https://raw.githubusercontent.com/rpuig2001/Capacity-Availability-Document-CDM/main/CAD.txt';
     const data = await this.fetchData(url);
-    return this.parseData(data);
+    const cadAirports = await this.parseData(data);
+
+    for (const a of cadAirports) {
+      for (const r of restrictions) {
+        if (a.icao == r.airspace) {
+          a.rate = 60 / r.capacity;
+          a.reason = r.reason;
+        }
+      }
+    }
+
+    return cadAirports;
   }
 }

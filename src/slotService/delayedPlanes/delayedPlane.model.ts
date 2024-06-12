@@ -31,9 +31,6 @@ export class DelayedPlane {
   mostPenalizingAirspace: string;
 
   @Prop()
-  reason: string;
-
-  @Prop()
   airspaces: AirspaceComplete[];
 
   @Prop()

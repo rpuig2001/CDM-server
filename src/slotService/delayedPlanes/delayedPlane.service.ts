@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { DelayedPlane } from './delayedPlane.model';
 import { HelperService } from '../helper/helper.service';
 import { SlotService } from '../slotServices.service';
+import { RestrictionService } from '../restriction/restriction.service';
 import { CadAirportService } from '../cadAirport/cadAirport.service';
 import { cadAirport } from '../cadAirport/interface/cadAirport.interface';
 
@@ -17,6 +18,7 @@ export class DelayedPlaneService {
     // eslint-disable-next-line prettier/prettier
     @Inject('SLOT_SERVICE_MODEL') private readonly slotServiceModel: Model<DelayedPlane>,
     private readonly cadAirportService: CadAirportService,
+    private readonly restrictionService: RestrictionService,
   ) {}
 
   async getAllDelayedPlanes(): Promise<DelayedPlane[]> {
@@ -82,9 +84,10 @@ export class DelayedPlaneService {
 
         //Get Planes
         const planes = await this.getAllDelayedPlanes();
+        const restrictions = await this.restrictionService.getRestrictions();
         //Get cadAirports
         const cadAirports: cadAirport[] =
-          await this.cadAirportService.getAirports();
+          await this.cadAirportService.getAirports(restrictions);
 
         calcPlane = await this.slotServiceService.calculatePlaneDestination(
           plane,
@@ -146,9 +149,10 @@ export class DelayedPlaneService {
 
         //Get Planes
         const planes = await this.getAllDelayedPlanes();
+        const restrictions = await this.restrictionService.getRestrictions();
         //Get cadAirports
         const cadAirports: cadAirport[] =
-          await this.cadAirportService.getAirports();
+          await this.cadAirportService.getAirports(restrictions);
 
         calcPlane = await this.slotServiceService.calculatePlaneDestination(
           plane,

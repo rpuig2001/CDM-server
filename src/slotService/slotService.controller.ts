@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
 import { RouteService } from './route/route.service';
 import { AirspaceService } from './airspace/airspace.service';
+import { RestrictionService } from './restriction/restriction.service';
 
 @Controller('slotService')
 export class SlotServiceController {
@@ -15,6 +16,7 @@ export class SlotServiceController {
     private readonly delayedPlaneService: DelayedPlaneService,
     private readonly airspaceService: AirspaceService,
     private readonly routeService: RouteService,
+    private readonly restrictionService: RestrictionService,
   ) {}
 
   @Get('callsign')
@@ -89,5 +91,24 @@ export class SlotServiceController {
       await this.delayedPlaneService.getAllDelayedPlanes(),
     );
     return delayedPlanes;
+  }
+
+  @Get('restrictions')
+  getRestrictions() {
+    return this.restrictionService.getRestrictions();
+  }
+
+  @Post('addRestriction')
+  addNewRestriction(
+    @Query('airspace') airspace: string,
+    @Query('capacity') capacity: number,
+    @Query('reason') reason: string,
+  ): Promise<any> {
+    return this.restrictionService.addRestriction(airspace, capacity, reason);
+  }
+
+  @Post('removeRestriction')
+  removeExistingRestriction(@Query('airspace') airspace: string): Promise<any> {
+    return this.restrictionService.removeRestriction(airspace);
   }
 }
