@@ -20,39 +20,39 @@ export class SlotServiceController {
   ) {}
 
   @Get('callsign')
-  setQueryToFindCallign(@Query('callsign') callsign: string) {
-    return this.delayedPlaneService.getDelayedPlaneByCallsign(callsign);
+  async setQueryToFindCallign(@Query('callsign') callsign: string) {
+    return await this.delayedPlaneService.getDelayedPlaneByCallsign(callsign);
   }
 
   @Get('depAirport')
-  setQueryToFindDepAirort(@Query('airport') airport: string) {
-    return this.delayedPlaneService.getDelayedPlanesByDepartureAirport(airport);
+  async setQueryToFindDepAirort(@Query('airport') airport: string) {
+    return await this.delayedPlaneService.getDelayedPlanesByDepartureAirport(airport);
   }
 
   @Get('airspace')
-  setQueryToFindAirspace(@Query('airspace') airspace: string) {
-    return this.delayedPlaneService.getDelayedPlanesByPenalizingAirspace(
+  async setQueryToFindAirspace(@Query('airspace') airspace: string) {
+    return await this.delayedPlaneService.getDelayedPlanesByPenalizingAirspace(
       airspace,
     );
   }
 
   @Post('cdm')
-  setQueryToSetTSAT(
+  async setQueryToSetTSAT(
     @Query('callsign') callsign: string,
     @Query('taxi') taxi: number,
     @Query('tsat') tsat: string,
   ) {
-    return this.delayedPlaneService.setCDM_TSAT(callsign, taxi, tsat);
+    return await this.delayedPlaneService.setCDM_TSAT(callsign, taxi, tsat);
   }
 
   @Get('airspaces')
-  getAirspacesWorkload(@Query('airspace') airspace: string) {
-    return this.airspaceService.getHourlyPeaks();
+  async getAirspacesWorkload(@Query('airspace') airspace: string) {
+    return await this.airspaceService.getHourlyPeaks();
   }
 
   @Get('restricted')
-  findRestricted() {
-    return this.delayedPlaneService.getAllrestrictedPlanes();
+  async findRestricted() {
+    return await this.delayedPlaneService.getAllrestrictedPlanes();
   }
 
   @Post('process')
@@ -71,7 +71,7 @@ export class SlotServiceController {
       if (response && response.data && response.data.pilots) {
         const planes = response.data.pilots;
         const [delayedPlanes] = await Promise.all([
-          this.slotService.processPlanes(planes),
+          await this.slotService.processPlanes(planes),
         ]);
         //const delayedPlanes = await this.slotService.processPlanes(planes);
         return delayedPlanes;
@@ -94,21 +94,27 @@ export class SlotServiceController {
   }
 
   @Get('restrictions')
-  getRestrictions() {
-    return this.restrictionService.getRestrictions();
+  async getRestrictions() {
+    return await this.restrictionService.getRestrictions();
   }
 
   @Post('addRestriction')
-  addNewRestriction(
+  async addNewRestriction(
     @Query('airspace') airspace: string,
     @Query('capacity') capacity: number,
     @Query('reason') reason: string,
   ): Promise<any> {
-    return this.restrictionService.addRestriction(airspace, capacity, reason);
+    return await this.restrictionService.addRestriction(
+      airspace,
+      capacity,
+      reason,
+    );
   }
 
   @Post('removeRestriction')
-  removeExistingRestriction(@Query('airspace') airspace: string): Promise<any> {
-    return this.restrictionService.removeRestriction(airspace);
+  async removeExistingRestriction(
+    @Query('airspace') airspace: string,
+  ): Promise<any> {
+    return await this.restrictionService.removeRestriction(airspace);
   }
 }

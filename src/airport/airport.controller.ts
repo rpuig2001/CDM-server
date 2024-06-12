@@ -14,45 +14,47 @@ export class AirportController {
 
   @Get()
   async findAll(): Promise<Airport[]> {
-    return this.airportService.findAll();
+    return await this.airportService.findAll();
   }
 
   @Post('setMaster')
-  setQueryToSetMaster(
+  async setQueryToSetMaster(
     @Query('airport') airport: string,
     @Query('position') position: string,
   ) {
-    if (!this.airportService.getIsMaster(airport)) {
+    if (!(await this.airportService.getIsMaster(airport))) {
       return false;
     }
-    return this.airportService.setMasterAirport(airport, position);
+    return await this.airportService.setMasterAirport(airport, position);
   }
 
   @Post('removeMaster')
-  setQueryToRemoveMaster(
+  async setQueryToRemoveMaster(
     @Query('airport') airport: string,
     @Query('position') position: string,
   ) {
-    if (this.airportService.getIsMaster(airport)) {
-      return this.airportService.removeMasterAirport(airport, position);
+    if (await this.airportService.getIsMaster(airport)) {
+      return await this.airportService.removeMasterAirport(airport, position);
     }
     return false;
   }
 
   @Post('removeAllMasterByPosition')
-  setQueryToRemoveAllMasterByPosition(@Query('position') position: string) {
+  async setQueryToRemoveAllMasterByPosition(
+    @Query('position') position: string,
+  ) {
     console.log(`Removed all entries for ${position}`);
-    this.airportService.removeByPosition(position);
+    await this.airportService.removeByPosition(position);
   }
 
   @Post('removeAllMasterByAirport')
-  setQueryToRemoveAllMasterByAirport(@Query('airport') airport: string) {
+  async setQueryToRemoveAllMasterByAirport(@Query('airport') airport: string) {
     console.log(`Removed all entries for ${airport}`);
-    this.airportService.removeByAirport(airport);
+    await this.airportService.removeByAirport(airport);
   }
 
   @Post('removedUnusedMasters')
-  setQueryToRemoveUnusedMasters() {
-    this.airportService.removeUnused();
+  async setQueryToRemoveUnusedMasters() {
+    await this.airportService.removeUnused();
   }
 }

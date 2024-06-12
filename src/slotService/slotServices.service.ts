@@ -26,11 +26,11 @@ export class SlotService {
     const delayedPlanes: DelayedPlane[] = [];
     const [waypoints, airways, airspaces, existingPlanes, restrictions] =
       await Promise.all([
-        this.routeService.getWaypoints(),
-        this.routeService.getAirways(),
-        this.routeService.getAirspaces(),
-        this.delayedPlaneService.getAllDelayedPlanes(),
-        this.restrictionService.getRestrictions(),
+        await this.routeService.getWaypoints(),
+        await this.routeService.getAirways(),
+        await this.routeService.getAirspaces(),
+        await this.delayedPlaneService.getAllDelayedPlanes(),
+        await this.restrictionService.getRestrictions(),
       ]);
 
     let counter = 1;
@@ -109,7 +109,7 @@ export class SlotService {
         });
 
         if (!modifiedPlaneFound) {
-          this.delayedPlaneService.deletePlane(existingPlane.callsign);
+          await this.delayedPlaneService.deletePlane(existingPlane.callsign);
           existingPlane = null;
         }
       }
@@ -695,18 +695,6 @@ export class SlotService {
       plane.mostPenalizingAirspace = airspaceToFix.airspaceName;
     }
     return plane;
-  }
-
-  private getDifCTOTandEOBT(ctot: string, eobt: string): number {
-    const ctotHours = parseInt(ctot.substring(0, 2));
-    const ctotMinutes = parseInt(ctot.substring(2));
-    const eobtHours = parseInt(eobt.substring(0, 2));
-    const eobtMinutes = parseInt(eobt.substring(2));
-
-    const ctotTotalMinutes = ctotHours * 60 + ctotMinutes;
-    const eobtTotalMinutes = eobtHours * 60 + eobtMinutes;
-
-    return ctotTotalMinutes - eobtTotalMinutes;
   }
 
   private isBetweenEntryAndExit(

@@ -12,7 +12,7 @@ export class AirportService {
   ) {}
 
   async create(createAirportDto: CreateAirportDto): Promise<Airport> {
-    const createdAirport = this.airportModel.create(createAirportDto);
+    const createdAirport = await this.airportModel.create(createAirportDto);
     return createdAirport;
   }
 
@@ -29,7 +29,7 @@ export class AirportService {
   }
 
   async findAll(): Promise<Airport[]> {
-    return this.airportModel.find().exec();
+    return await this.airportModel.find().exec();
   }
 
   async getOnlineAtc(): Promise<Atc[]> {
