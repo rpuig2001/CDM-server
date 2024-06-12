@@ -34,7 +34,8 @@ export class AirportController {
     @Query('airport') airport: string,
     @Query('position') position: string,
   ) {
-    if (await this.airportService.getIsMaster(airport)) {
+    const isAirportMaster = await this.airportService.getIsMaster(airport);
+    if (isAirportMaster) {
       return await this.airportService.removeMasterAirport(airport, position);
     }
     return false;
