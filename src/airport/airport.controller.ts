@@ -22,7 +22,8 @@ export class AirportController {
     @Query('airport') airport: string,
     @Query('position') position: string,
   ) {
-    if (!(await this.airportService.getIsMaster(airport))) {
+    const isAirportMaster = await this.airportService.getIsMaster(airport);
+    if (isAirportMaster) {
       return false;
     }
     return await this.airportService.setMasterAirport(airport, position);
