@@ -605,9 +605,13 @@ export class SlotService {
           plane = calcPlane;
         } else {
           console.log(
-            `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign}`,
+            `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${calcPlane.ctot} - ${calcPlane.taxi} < now+5)`,
           );
         }
+      } else {
+        console.log(
+          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${plane.ctot} > ${calcPlane.ctot})`,
+        );
       }
     } else if (calcPlane.ctot != '') {
       if (
@@ -626,7 +630,7 @@ export class SlotService {
         plane = calcPlane;
       } else {
         console.log(
-          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign}`,
+          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${calcPlane.ctot} - ${calcPlane.taxi} < now+5)`,
         );
       }
     }
