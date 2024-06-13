@@ -179,9 +179,14 @@ export class DelayedPlaneService {
   }
 
   async setCdmSts(callsign: string, cdmSts: string): Promise<boolean> {
-    const plane = await this.getDelayedPlaneByCallsign(callsign);
+    let plane = await this.getDelayedPlaneByCallsign(callsign);
     if (plane) {
       plane.cdmSts = cdmSts;
+
+      if (cdmSts == 'I') {
+        plane = await this.resetAirspacesToEobt(plane);
+      }
+
       //Update DB Plane
       await this.slotServiceModel
         .findOneAndUpdate({ callsign }, plane, {
@@ -281,5 +286,37 @@ export class DelayedPlaneService {
     } catch (error: any) {
       console.error(`Error removing unused planees from DB`);
     }
+  }
+
+  async resetAirspacesToEobt(plane: DelayedPlane) {
+    let previousTTOT = '';
+    if (plane.ctot != '') {
+      previousTTOT = plane.ctot;
+    } else if (plane.tsat != '') {
+      previousTTOT = this.helperService.addMinutesToTime(
+        plane.tsat,
+        plane.taxi,
+      );
+    } else {
+      previousTTOT = this.helperService.addMinutesToTime(
+        plane.eobt,
+        plane.taxi,
+      );
+    }
+
+    plane.taxi = 15;
+    plane.tsat = '';
+    plane.ctot = '';
+
+    const newTTOT = this.helperService.addMinutesToTime(plane.eobt, plane.taxi);
+
+    //Update airspace times
+    plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
+      plane.airspaces,
+      newTTOT,
+      previousTTOT,
+    );
+
+    return plane;
   }
 }
