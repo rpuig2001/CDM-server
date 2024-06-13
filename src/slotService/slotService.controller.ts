@@ -26,7 +26,9 @@ export class SlotServiceController {
 
   @Get('depAirport')
   async setQueryToFindDepAirort(@Query('airport') airport: string) {
-    return await this.delayedPlaneService.getDelayedPlanesByDepartureAirport(airport);
+    return await this.delayedPlaneService.getDelayedPlanesByDepartureAirport(
+      airport,
+    );
   }
 
   @Get('airspace')
@@ -41,8 +43,22 @@ export class SlotServiceController {
     @Query('callsign') callsign: string,
     @Query('taxi') taxi: number,
     @Query('tsat') tsat: string,
+    @Query('cdmSts') cdmSts: string,
   ) {
-    return await this.delayedPlaneService.setCDM_TSAT(callsign, taxi, tsat);
+    return await this.delayedPlaneService.setCDM_TSAT(
+      callsign,
+      taxi,
+      tsat,
+      cdmSts,
+    );
+  }
+
+  @Post('setCdmStatus')
+  async setCdmStatus(
+    @Query('callsign') callsign: string,
+    @Query('sts') cdmSts: string,
+  ) {
+    return await this.delayedPlaneService.setCdmSts(callsign, cdmSts);
   }
 
   @Get('airspaces')

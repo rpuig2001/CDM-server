@@ -40,7 +40,7 @@ export class DelayedPlane {
   modify: boolean;
 
   @Prop()
-  cdm: boolean;
+  cdmSts: string;
 }
 
 export const DelayedPlaneSchema = SchemaFactory.createForClass(DelayedPlane);

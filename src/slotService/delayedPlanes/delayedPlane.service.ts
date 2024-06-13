@@ -37,6 +37,7 @@ export class DelayedPlaneService {
     callsign: string,
     taxi: number,
     tsat: string,
+    cdmSts: string,
   ): Promise<DelayedPlane> {
     let plane = await this.getDelayedPlaneByCallsign(callsign);
     let previousTTOT;
@@ -56,7 +57,7 @@ export class DelayedPlaneService {
           );
         }
 
-        plane.cdm = true;
+        plane.cdmSts = cdmSts;
         plane.tsat = tsat;
         plane.taxi = taxi;
 
@@ -66,15 +67,16 @@ export class DelayedPlaneService {
           this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
           previousTTOT,
         );
-        //get Airspaces data
-        const airspacesWorkload =
-          await this.slotServiceService.getAirspacesWorkload(plane.callsign);
+
+        //Get Planes
+        const planes = await this.getAllDelayedPlanes();
+        const restrictions = await this.restrictionService.getRestrictions();
 
         //calculate
         let calcPlane = await this.slotServiceService.calculatePlane(
           plane,
           this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-          airspacesWorkload,
+          planes,
         );
         let initialPlane = plane;
         initialPlane = await this.slotServiceService.makeCTOTvalid(
@@ -82,9 +84,6 @@ export class DelayedPlaneService {
           plane,
         );
 
-        //Get Planes
-        const planes = await this.getAllDelayedPlanes();
-        const restrictions = await this.restrictionService.getRestrictions();
         //Get cadAirports
         const cadAirports: cadAirport[] =
           await this.cadAirportService.getAirports(restrictions);
@@ -116,7 +115,7 @@ export class DelayedPlaneService {
           );
         }
 
-        plane.cdm = false;
+        plane.cdmSts = cdmSts;
         plane.tsat = '';
         plane.taxi = 15;
 
@@ -131,15 +130,15 @@ export class DelayedPlaneService {
           previousTTOT,
         );
 
-        //get Airspaces data
-        const airspacesWorkload =
-          await this.slotServiceService.getAirspacesWorkload(plane.callsign);
+        //Get Planes
+        const planes = await this.getAllDelayedPlanes();
+        const restrictions = await this.restrictionService.getRestrictions();
 
         //calculate
         let calcPlane = await this.slotServiceService.calculatePlane(
           plane,
           this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
-          airspacesWorkload,
+          planes,
         );
         let initialPlane = plane;
         initialPlane = await this.slotServiceService.makeCTOTvalid(
@@ -147,9 +146,6 @@ export class DelayedPlaneService {
           initialPlane,
         );
 
-        //Get Planes
-        const planes = await this.getAllDelayedPlanes();
-        const restrictions = await this.restrictionService.getRestrictions();
         //Get cadAirports
         const cadAirports: cadAirport[] =
           await this.cadAirportService.getAirports(restrictions);
@@ -180,6 +176,22 @@ export class DelayedPlaneService {
     }
 
     return null;
+  }
+
+  async setCdmSts(callsign: string, cdmSts: string): Promise<boolean> {
+    const plane = await this.getDelayedPlaneByCallsign(callsign);
+    if (plane) {
+      plane.cdmSts = cdmSts;
+      //Update DB Plane
+      await this.slotServiceModel
+        .findOneAndUpdate({ callsign }, plane, {
+          new: true,
+          runValidators: true,
+        })
+        .exec();
+      return true;
+    }
+    return false;
   }
 
   async getDelayedPlaneByCallsign(

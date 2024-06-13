@@ -157,7 +157,7 @@ export class SlotService {
           delayedPlanes.push(existingPlane);
           continue;
         } else {
-          if (existingPlane.cdm) {
+          if (existingPlane.tsat != '') {
             //console.log(`Plane controlled by CDM, skipping`);
             existingPlane.modify = false;
             delayedPlanes.push(existingPlane);
@@ -166,7 +166,6 @@ export class SlotService {
             //Check if new EOBT sent by the pilot
             if (
               isAirborne == false &&
-              existingPlane.cdm == false &&
               existingPlane.eobt != flight_plan.deptime
             ) {
               //console.log(`Plane already fetched, updating EOBT as filed (${existingPlane.eobt} - ${plane.eobt})`);
@@ -235,7 +234,7 @@ export class SlotService {
         airspaces: myairspaces,
         route: flight_plan.route,
         modify: true,
-        cdm: false,
+        cdmSts: '',
       });
     }
 
@@ -269,7 +268,7 @@ export class SlotService {
   async calculatePlane(
     plane: DelayedPlane,
     tempTTOT: string,
-    airspaceAll: AirspaceAll[],
+    planes: DelayedPlane[],
   ): Promise<DelayedPlane> {
     const increaseFreq = 5;
 
@@ -294,26 +293,28 @@ export class SlotService {
           );*/
         let counter = 0;
 
-        for (const au of airspaceAll) {
-          for (const airspace of au.airspaces) {
-            if (airspace.airspace === myairspace.airspace) {
-              const entryTime1 = myairspace.entryTime;
-              const exitTime1 = myairspace.exitTime;
-              const entryTime2 = airspace.entryTime;
-              const exitTime2 = airspace.exitTime;
+        for (const p of planes) {
+          if (p.callsign != plane.callsign && p.cdmSts != 'I') {
+            for (const airspace of p.airspaces) {
+              if (airspace.airspace === myairspace.airspace) {
+                const entryTime1 = myairspace.entryTime;
+                const exitTime1 = myairspace.exitTime;
+                const entryTime2 = airspace.entryTime;
+                const exitTime2 = airspace.exitTime;
 
-              if (
-                this.isBetweenEntryAndExit(
-                  entryTime1,
-                  exitTime1,
-                  entryTime2,
-                  exitTime2,
-                )
-              ) {
-                /*console.log(
-                    `${plane.callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
-                  );*/
-                counter++;
+                if (
+                  this.isBetweenEntryAndExit(
+                    entryTime1,
+                    exitTime1,
+                    entryTime2,
+                    exitTime2,
+                  )
+                ) {
+                  /*console.log(
+                      `${plane.callsign} - Conflicts in ${airspace.airspace} with entry: ${entryTime2} and exit ${exitTime2} (counter: ${counter + 1} )`,
+                    );*/
+                  counter++;
+                }
               }
             }
           }
@@ -503,7 +504,6 @@ export class SlotService {
   async delayPlanes(planes: DelayedPlane[]): Promise<DelayedPlane[]> {
     const restrictions = await this.restrictionService.getRestrictions();
     const delayedPlanes: DelayedPlane[] = [];
-    const airspaceAll: AirspaceAll[] = [];
     const cadAirports: cadAirport[] =
       await this.cadAirportService.getAirports(restrictions);
 
@@ -517,9 +517,8 @@ export class SlotService {
 
       if (plane.atot != '') {
         //console.log(`Skipping ${plane.callsign} is already airborne`);
-        airspaceAll.push({
-          airspaces: plane.airspaces,
-        });
+      } else if (plane.cdmSts == 'I') {
+        //console.log(`Skipping ${plane.callsign} as cdm status is INVALID`);
       } else {
         let tempTTOT = this.helperService.addMinutesToTime(
           plane.eobt,
@@ -552,7 +551,7 @@ export class SlotService {
           }
         }
 
-        let calcPlane = await this.calculatePlane(plane, tempTTOT, airspaceAll);
+        let calcPlane = await this.calculatePlane(plane, tempTTOT, planes);
         let initialPlane = plane;
         initialPlane = await this.makeCTOTvalid(calcPlane, plane);
 
@@ -564,12 +563,6 @@ export class SlotService {
           tempTTOT,
         );
         plane = await this.makeCTOTvalid(calcPlane, initialPlane);
-
-        const airspaceAllElement: AirspaceAll = {
-          airspaces: plane.airspaces,
-        };
-
-        airspaceAll.push(airspaceAllElement);
 
         /*console.log(
         `----------------- Finished processing ${plane.callsign} -----------------`,
