@@ -586,8 +586,7 @@ export class SlotService {
   ): Promise<DelayedPlane> {
     /*Making CTOT valid if:
         1. existing ctot > new ctot (only if CTOT exists already).
-        2. (new CTOT - taxiTime) > timeNow.
-        3. (newCTOT - taxiTime) and timeNow diff is > 5.
+        2. (new CTOT - taxiTime) > (timeNow + 5min)
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
       if (
@@ -596,12 +595,11 @@ export class SlotService {
         if (
           this.helperService.isTime1GreaterThanTime2(
             calcPlane.ctot,
-            this.helperService.getCurrentUTCTime(),
-          ) &&
-          this.helperService.getTimeDifferenceInMinutes(
-            this.helperService.getCurrentUTCTime(),
-            calcPlane.ctot,
-          ) > 5
+            this.helperService.addMinutesToTime(
+              this.helperService.getCurrentUTCTime(),
+              5,
+            ),
+          )
         ) {
           console.log(`validated ${calcPlane.ctot} for ${calcPlane.callsign}`);
           plane = calcPlane;
