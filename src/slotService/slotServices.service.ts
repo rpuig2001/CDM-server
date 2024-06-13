@@ -616,15 +616,11 @@ export class SlotService {
             calcPlane.ctot,
             calcPlane.taxi,
           ),
-          this.helperService.getCurrentUTCTime(),
-        ) &&
-        this.helperService.getTimeDifferenceInMinutes(
-          this.helperService.getCurrentUTCTime(),
-          this.helperService.removeMinutesFromTime(
-            calcPlane.ctot,
-            calcPlane.taxi,
+          this.helperService.addMinutesToTime(
+            this.helperService.getCurrentUTCTime(),
+            5,
           ),
-        ) > 5
+        )
       ) {
         console.log(`validated ${calcPlane.ctot} for ${calcPlane.callsign}`);
         plane = calcPlane;
