@@ -42,128 +42,131 @@ export class DelayedPlaneService {
     let plane = await this.getDelayedPlaneByCallsign(callsign);
     let previousTTOT;
     if (plane) {
-      if (tsat.length === 4) {
-        if (plane.ctot != '') {
-          previousTTOT = plane.ctot;
-        } else if (plane.tsat != '') {
-          previousTTOT = this.helperService.addMinutesToTime(
-            plane.tsat,
-            plane.taxi,
+      if (cdmSts == 'I') {
+        plane = await this.resetAirspacesToEobt(plane);
+      } else {
+        if (tsat.length === 4) {
+          if (plane.ctot != '') {
+            previousTTOT = plane.ctot;
+          } else if (plane.tsat != '') {
+            previousTTOT = this.helperService.addMinutesToTime(
+              plane.tsat,
+              plane.taxi,
+            );
+          } else {
+            previousTTOT = this.helperService.addMinutesToTime(
+              plane.eobt,
+              plane.taxi,
+            );
+          }
+
+          plane.cdmSts = cdmSts;
+          plane.tsat = tsat;
+          plane.taxi = taxi;
+
+          //Update airspace times
+          plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
+            plane.airspaces,
+            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+            previousTTOT,
           );
-        } else {
-          previousTTOT = this.helperService.addMinutesToTime(
+
+          //Get Planes
+          const planes = await this.getAllDelayedPlanes();
+          const restrictions = await this.restrictionService.getRestrictions();
+
+          //calculate
+          let calcPlane = await this.slotServiceService.calculatePlane(
+            plane,
+            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+            planes,
+          );
+          let initialPlane = plane;
+          initialPlane = await this.slotServiceService.makeCTOTvalid(
+            calcPlane,
+            plane,
+          );
+
+          //Get cadAirports
+          const cadAirports: cadAirport[] =
+            await this.cadAirportService.getAirports(restrictions);
+
+          calcPlane = await this.slotServiceService.calculatePlaneDestination(
+            plane,
+            planes,
+            cadAirports,
+            calcPlane,
+            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+          );
+
+          plane = await this.slotServiceService.makeCTOTvalid(
+            calcPlane,
+            initialPlane,
+          );
+        } else if (plane && tsat.length === 0) {
+          if (plane.ctot != '') {
+            previousTTOT = plane.ctot;
+          } else if (plane.tsat != '') {
+            previousTTOT = this.helperService.addMinutesToTime(
+              plane.tsat,
+              plane.taxi,
+            );
+          } else {
+            previousTTOT = this.helperService.addMinutesToTime(
+              plane.eobt,
+              plane.taxi,
+            );
+          }
+
+          plane.cdmSts = cdmSts;
+          plane.tsat = '';
+          plane.taxi = 15;
+
+          //Update airspace times
+          const actualTTOT = this.helperService.addMinutesToTime(
             plane.eobt,
             plane.taxi,
           );
-        }
-
-        plane.cdmSts = cdmSts;
-        plane.tsat = tsat;
-        plane.taxi = taxi;
-
-        //Update airspace times
-        plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
-          plane.airspaces,
-          this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-          previousTTOT,
-        );
-
-        //Get Planes
-        const planes = await this.getAllDelayedPlanes();
-        const restrictions = await this.restrictionService.getRestrictions();
-
-        //calculate
-        let calcPlane = await this.slotServiceService.calculatePlane(
-          plane,
-          this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-          planes,
-        );
-        let initialPlane = plane;
-        initialPlane = await this.slotServiceService.makeCTOTvalid(
-          calcPlane,
-          plane,
-        );
-
-        //Get cadAirports
-        const cadAirports: cadAirport[] =
-          await this.cadAirportService.getAirports(restrictions);
-
-        calcPlane = await this.slotServiceService.calculatePlaneDestination(
-          plane,
-          planes,
-          cadAirports,
-          calcPlane,
-          this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-        );
-
-        plane = await this.slotServiceService.makeCTOTvalid(
-          calcPlane,
-          initialPlane,
-        );
-      } else if (plane && tsat.length === 0) {
-        if (plane.ctot != '') {
-          previousTTOT = plane.ctot;
-        } else if (plane.tsat != '') {
-          previousTTOT = this.helperService.addMinutesToTime(
-            plane.tsat,
-            plane.taxi,
+          plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
+            plane.airspaces,
+            actualTTOT,
+            previousTTOT,
           );
-        } else {
-          previousTTOT = this.helperService.addMinutesToTime(
-            plane.eobt,
-            plane.taxi,
+
+          //Get Planes
+          const planes = await this.getAllDelayedPlanes();
+          const restrictions = await this.restrictionService.getRestrictions();
+
+          //calculate
+          let calcPlane = await this.slotServiceService.calculatePlane(
+            plane,
+            this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
+            planes,
+          );
+          let initialPlane = plane;
+          initialPlane = await this.slotServiceService.makeCTOTvalid(
+            calcPlane,
+            initialPlane,
+          );
+
+          //Get cadAirports
+          const cadAirports: cadAirport[] =
+            await this.cadAirportService.getAirports(restrictions);
+
+          calcPlane = await this.slotServiceService.calculatePlaneDestination(
+            plane,
+            planes,
+            cadAirports,
+            calcPlane,
+            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+          );
+
+          plane = await this.slotServiceService.makeCTOTvalid(
+            calcPlane,
+            initialPlane,
           );
         }
-
-        plane.cdmSts = cdmSts;
-        plane.tsat = '';
-        plane.taxi = 15;
-
-        //Update airspace times
-        const actualTTOT = this.helperService.addMinutesToTime(
-          plane.eobt,
-          plane.taxi,
-        );
-        plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
-          plane.airspaces,
-          actualTTOT,
-          previousTTOT,
-        );
-
-        //Get Planes
-        const planes = await this.getAllDelayedPlanes();
-        const restrictions = await this.restrictionService.getRestrictions();
-
-        //calculate
-        let calcPlane = await this.slotServiceService.calculatePlane(
-          plane,
-          this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
-          planes,
-        );
-        let initialPlane = plane;
-        initialPlane = await this.slotServiceService.makeCTOTvalid(
-          calcPlane,
-          initialPlane,
-        );
-
-        //Get cadAirports
-        const cadAirports: cadAirport[] =
-          await this.cadAirportService.getAirports(restrictions);
-
-        calcPlane = await this.slotServiceService.calculatePlaneDestination(
-          plane,
-          planes,
-          cadAirports,
-          calcPlane,
-          this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-        );
-
-        plane = await this.slotServiceService.makeCTOTvalid(
-          calcPlane,
-          initialPlane,
-        );
       }
-
       //Update DB Plane
       await this.slotServiceModel
         .findOneAndUpdate({ callsign }, plane, {
