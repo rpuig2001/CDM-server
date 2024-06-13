@@ -56,7 +56,7 @@ export class SlotServiceController {
   @Post('setCdmStatus')
   async setCdmStatus(
     @Query('callsign') callsign: string,
-    @Query('sts') cdmSts: string,
+    @Query('cdmSts') cdmSts: string,
   ) {
     return await this.delayedPlaneService.setCdmSts(callsign, cdmSts);
   }
