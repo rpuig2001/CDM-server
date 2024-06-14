@@ -40,6 +40,10 @@ export class SlotService {
     let isAirborne = false;
     let existingPlane = null;
     let myairspaces: AirspaceComplete[] = null;
+    let myAtot = '';
+    let recalculateAirspaces = false;
+    let previousTTOT = '';
+    let actualTTOT = '';
 
     let counter = 1;
     for (const plane of planes) {
@@ -93,7 +97,7 @@ export class SlotService {
           existingPlane.cdmSts = '';
           existingPlane.modify = true;
 
-          let recalculateAirspaces = false;
+          recalculateAirspaces = false;
           /* Recalculate Airspaces only if CTOT exists and diff between timeNow and CTOT > 15 */
           if (existingPlane.ctot != '') {
             if (
@@ -109,7 +113,7 @@ export class SlotService {
           }
 
           if (recalculateAirspaces) {
-            let previousTTOT = this.helperService.addMinutesToTime(
+            previousTTOT = this.helperService.addMinutesToTime(
               existingPlane.eobt,
               existingPlane.taxi,
             );
@@ -118,7 +122,7 @@ export class SlotService {
               previousTTOT = existingPlane.ctot;
             }
 
-            const actualTTOT = this.helperService.getCurrentUTCTime();
+            actualTTOT = this.helperService.getCurrentUTCTime();
             existingPlane.airspaces = await this.moveTimesOfAirspace(
               existingPlane.airspaces,
               actualTTOT,
@@ -178,7 +182,6 @@ export class SlotService {
         }
       });
 
-      let myAtot = '';
       if (isAirborne) {
         myAtot = this.helperService.getCurrentUTCTime();
       }
@@ -207,6 +210,8 @@ export class SlotService {
         modify: true,
         cdmSts: '',
       });
+
+      existingPlane = null;
     }
 
     try {
