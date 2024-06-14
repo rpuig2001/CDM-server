@@ -640,7 +640,7 @@ export class SlotService {
         )
       ) {
         console.log(
-          `${plane.callsign} - Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
+          `${plane.callsign} - Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
         );
         plane = calcPlane;
       } else {
