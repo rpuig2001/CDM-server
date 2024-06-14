@@ -421,35 +421,32 @@ export class SlotService {
       let checked = false;
 
       while (!checked) {
-        let doNotCheckMore = false;
         checked = true;
         for (const p of planes) {
           if (p.airspaces.length > 0) {
-            if (p.callsign == calcPlane.callsign) {
-              doNotCheckMore = true;
-            }
+            if (p.callsign != calcPlane.callsign && p.cdmSts == 'I') {
+              if (p.arrival == calcPlane.arrival) {
+                const otherArrivalTime =
+                  p.airspaces[p.airspaces.length - 1].exitTime;
 
-            if (p.arrival == calcPlane.arrival && !doNotCheckMore) {
-              const otherArrivalTime =
-                p.airspaces[p.airspaces.length - 1].exitTime;
-
-              if (
-                this.helperService.getTimeDifferenceInMinutes(
-                  arrivalTime,
-                  otherArrivalTime,
-                ) < Math.floor(60 / rate)
-              ) {
-                arrivalTime = this.helperService.addMinutesToTime(
-                  otherArrivalTime,
-                  Math.floor(60 / rate),
-                );
-                /*console.log(
-                  `${calcPlane.callsign} using arrivalTime: ${initialArrivalTime} / new arrivalTime ${arrivalTime}`,
-                );*/
-                /*console.log(
-                  `${calcPlane.callsign} conflicts with ${p.callsign} which lands at ${otherArrivalTime} (Rate ${rate})`,
-                );*/
-                checked = false;
+                if (
+                  this.helperService.getTimeDifferenceInMinutes(
+                    arrivalTime,
+                    otherArrivalTime,
+                  ) < Math.floor(60 / rate)
+                ) {
+                  arrivalTime = this.helperService.addMinutesToTime(
+                    otherArrivalTime,
+                    Math.floor(60 / rate),
+                  );
+                  console.log(
+                    `${calcPlane.callsign} using arrivalTime: ${initialArrivalTime} / new arrivalTime ${arrivalTime}`,
+                  );
+                  console.log(
+                    `${calcPlane.callsign} conflicts with ${p.callsign} which lands at ${otherArrivalTime} (Rate ${rate})`,
+                  );
+                  checked = false;
+                }
               }
             }
           }
@@ -510,58 +507,58 @@ export class SlotService {
     console.log(`Calculating ${planes.length} planes`);
 
     let counter = 1;
-    for (let plane of planes) {
+    for (let i = 0; i < planes.length; i++) {
       await new Promise((resolve) => setImmediate(resolve));
       //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
-      if (plane.atot != '') {
+      if (planes[i].atot != '') {
         //console.log(`Skipping ${plane.callsign} is already airborne`);
-      } else if (plane.cdmSts == 'I') {
+      } else if (planes[i].cdmSts == 'I') {
         //console.log(`Skipping ${plane.callsign} as cdm status is INVALID`);
       } else {
         let tempTTOT = this.helperService.addMinutesToTime(
-          plane.eobt,
-          plane.taxi,
+          planes[i].eobt,
+          planes[i].taxi,
         );
-        if (plane.tsat != '') {
+        if (planes[i].tsat != '') {
           tempTTOT = this.helperService.addMinutesToTime(
-            plane.tsat,
-            plane.taxi,
+            planes[i].tsat,
+            planes[i].taxi,
           );
         }
-        if (plane.ctot != '') {
+        if (planes[i].ctot != '') {
           const diff = this.helperService.getTimeDifferenceInMinutes(
             tempTTOT,
-            plane.ctot,
+            planes[i].ctot,
           );
           if (diff !== 0) {
-            for (let z = 0; z < plane.airspaces.length; z++) {
-              plane.airspaces[z].entryTime =
+            for (let z = 0; z < planes[i].airspaces.length; z++) {
+              planes[i].airspaces[z].entryTime =
                 this.helperService.removeMinutesFromTime(
-                  plane.airspaces[z].entryTime,
+                  planes[i].airspaces[z].entryTime,
                   diff,
                 );
-              plane.airspaces[z].exitTime =
+              planes[i].airspaces[z].exitTime =
                 this.helperService.removeMinutesFromTime(
-                  plane.airspaces[z].exitTime,
+                  planes[i].airspaces[z].exitTime,
                   diff,
                 );
             }
           }
         }
 
-        let planeCopy = JSON.parse(JSON.stringify(plane));
+        let planeCopy = JSON.parse(JSON.stringify(planes[i]));
         let planesCopy = JSON.parse(JSON.stringify(planes));
         let calcPlane = await this.calculatePlane(
           planeCopy,
           tempTTOT,
           planesCopy,
         );
-        planeCopy = JSON.parse(JSON.stringify(plane));
+        planeCopy = JSON.parse(JSON.stringify(planes[i]));
         const initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy);
 
-        planeCopy = JSON.parse(JSON.stringify(plane));
+        planeCopy = JSON.parse(JSON.stringify(planes[i]));
         planesCopy = JSON.parse(JSON.stringify(planes));
         calcPlane = await this.calculatePlaneDestination(
           planeCopy,
@@ -570,7 +567,7 @@ export class SlotService {
           calcPlane,
           tempTTOT,
         );
-        plane = await this.makeCTOTvalid(calcPlane, initialPlane);
+        planes[i] = await this.makeCTOTvalid(calcPlane, initialPlane);
 
         /*console.log(
         `----------------- Finished processing ${plane.callsign} -----------------`,
@@ -597,6 +594,7 @@ export class SlotService {
         2. (new CTOT - taxiTime) > (timeNow + 5min)
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
+      console.log(`${calcPlane.ctot} - ${plane.ctot}`);
       if (
         this.helperService.isTime1GreaterThanTime2(plane.ctot, calcPlane.ctot)
       ) {
@@ -618,10 +616,11 @@ export class SlotService {
         }
       } else {
         console.log(
-          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${plane.ctot} > ${calcPlane.ctot})`,
+          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${plane.ctot} < ${calcPlane.ctot})`,
         );
       }
     } else if (calcPlane.ctot != '') {
+      console.log(`${calcPlane.ctot} - ${plane.ctot}`);
       if (
         this.helperService.isTime1GreaterThanTime2(
           this.helperService.removeMinutesFromTime(
