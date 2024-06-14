@@ -40,52 +40,57 @@ export class DelayedPlaneService {
     cdmSts: string,
   ): Promise<DelayedPlane> {
     let plane = await this.getDelayedPlaneByCallsign(callsign);
+    let mainPlane = plane;
     let previousTTOT;
     let planeCopy = null;
     let planesCopy = null;
     if (plane) {
       if (cdmSts == 'I') {
-        plane = await this.resetAirspacesToEobt(plane);
+        mainPlane = await this.resetAirspacesToEobt(mainPlane);
       } else {
         if (tsat.length === 4) {
-          if (plane.ctot != '') {
-            previousTTOT = plane.ctot;
-          } else if (plane.tsat != '') {
+          if (mainPlane.ctot != '') {
+            previousTTOT = mainPlane.ctot;
+          } else if (mainPlane.tsat != '') {
             previousTTOT = this.helperService.addMinutesToTime(
-              plane.tsat,
-              plane.taxi,
+              mainPlane.tsat,
+              mainPlane.taxi,
             );
           } else {
             previousTTOT = this.helperService.addMinutesToTime(
-              plane.eobt,
-              plane.taxi,
+              mainPlane.eobt,
+              mainPlane.taxi,
             );
           }
 
-          plane.cdmSts = cdmSts;
-          plane.tsat = tsat;
-          plane.taxi = taxi;
+          mainPlane.cdmSts = cdmSts;
+          mainPlane.tsat = tsat;
+          mainPlane.taxi = taxi;
 
           //Update airspace times
-          plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
-            plane.airspaces,
-            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-            previousTTOT,
-          );
+          mainPlane.airspaces =
+            await this.slotServiceService.moveTimesOfAirspace(
+              mainPlane.airspaces,
+              this.helperService.addMinutesToTime(
+                mainPlane.tsat,
+                mainPlane.taxi,
+              ),
+              previousTTOT,
+            );
 
           //Get Planes
           const planes = await this.getAllDelayedPlanes();
           const restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
-          planeCopy = JSON.parse(JSON.stringify(plane));
+          planeCopy = JSON.parse(JSON.stringify(mainPlane));
           planesCopy = JSON.parse(JSON.stringify(planes));
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
-            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+            this.helperService.addMinutesToTime(mainPlane.tsat, mainPlane.taxi),
             planesCopy,
           );
-          planeCopy = JSON.parse(JSON.stringify(plane));
+          planeCopy = JSON.parse(JSON.stringify(mainPlane));
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             planeCopy,
@@ -95,64 +100,65 @@ export class DelayedPlaneService {
           const cadAirports: cadAirport[] =
             await this.cadAirportService.getAirports(restrictions);
 
-          planeCopy = JSON.parse(JSON.stringify(plane));
+          planeCopy = JSON.parse(JSON.stringify(mainPlane));
           planesCopy = JSON.parse(JSON.stringify(planes));
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
             planeCopy,
             planesCopy,
             cadAirports,
             calcPlane,
-            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+            this.helperService.addMinutesToTime(mainPlane.tsat, mainPlane.taxi),
           );
 
           plane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             initialPlane,
           );
-        } else if (plane && tsat.length === 0) {
-          if (plane.ctot != '') {
-            previousTTOT = plane.ctot;
-          } else if (plane.tsat != '') {
+        } else if (mainPlane && tsat.length === 0) {
+          if (mainPlane.ctot != '') {
+            previousTTOT = mainPlane.ctot;
+          } else if (mainPlane.tsat != '') {
             previousTTOT = this.helperService.addMinutesToTime(
-              plane.tsat,
-              plane.taxi,
+              mainPlane.tsat,
+              mainPlane.taxi,
             );
           } else {
             previousTTOT = this.helperService.addMinutesToTime(
-              plane.eobt,
-              plane.taxi,
+              mainPlane.eobt,
+              mainPlane.taxi,
             );
           }
 
-          plane.cdmSts = cdmSts;
-          plane.tsat = '';
-          plane.taxi = 15;
+          mainPlane.cdmSts = cdmSts;
+          mainPlane.tsat = '';
+          mainPlane.taxi = 15;
 
           //Update airspace times
           const actualTTOT = this.helperService.addMinutesToTime(
-            plane.eobt,
-            plane.taxi,
+            mainPlane.eobt,
+            mainPlane.taxi,
           );
-          plane.airspaces = await this.slotServiceService.moveTimesOfAirspace(
-            plane.airspaces,
-            actualTTOT,
-            previousTTOT,
-          );
+          mainPlane.airspaces =
+            await this.slotServiceService.moveTimesOfAirspace(
+              mainPlane.airspaces,
+              actualTTOT,
+              previousTTOT,
+            );
 
           //Get Planes
           const planes = await this.getAllDelayedPlanes();
           const restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
-          planeCopy = JSON.parse(JSON.stringify(plane));
+          planeCopy = JSON.parse(JSON.stringify(mainPlane));
           planesCopy = JSON.parse(JSON.stringify(planes));
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
-            this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
+            this.helperService.addMinutesToTime(mainPlane.eobt, mainPlane.taxi),
             planesCopy,
           );
 
-          planeCopy = JSON.parse(JSON.stringify(plane));
+          planeCopy = JSON.parse(JSON.stringify(mainPlane));
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             planeCopy,
@@ -162,14 +168,14 @@ export class DelayedPlaneService {
           const cadAirports: cadAirport[] =
             await this.cadAirportService.getAirports(restrictions);
 
-          planeCopy = JSON.parse(JSON.stringify(plane));
+          planeCopy = JSON.parse(JSON.stringify(mainPlane));
           planesCopy = JSON.parse(JSON.stringify(planes));
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
             planeCopy,
             planesCopy,
             cadAirports,
             calcPlane,
-            this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
+            this.helperService.addMinutesToTime(mainPlane.tsat, mainPlane.taxi),
           );
 
           plane = await this.slotServiceService.makeCTOTvalid(
@@ -191,6 +197,7 @@ export class DelayedPlaneService {
 
     planeCopy = null;
     planesCopy = null;
+    mainPlane = null;
 
     return null;
   }
