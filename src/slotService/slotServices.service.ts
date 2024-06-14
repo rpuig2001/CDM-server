@@ -551,18 +551,18 @@ export class SlotService {
           }
         }
 
-        let planeCopy = plane;
-        let planesCopy = planes;
+        let planeCopy = JSON.parse(JSON.stringify(plane));
+        let planesCopy = JSON.parse(JSON.stringify(planes));
         let calcPlane = await this.calculatePlane(
           planeCopy,
           tempTTOT,
           planesCopy,
         );
-        planeCopy = plane;
+        planeCopy = JSON.parse(JSON.stringify(plane));
         const initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy);
 
-        planeCopy = plane;
-        planesCopy = planes;
+        planeCopy = JSON.parse(JSON.stringify(plane));
+        planesCopy = JSON.parse(JSON.stringify(planes));
         calcPlane = await this.calculatePlaneDestination(
           planeCopy,
           planesCopy,

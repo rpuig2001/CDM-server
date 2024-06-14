@@ -76,14 +76,14 @@ export class DelayedPlaneService {
           const restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
-          let planeCopy = plane;
-          let planesCopy = planes;
+          let planeCopy = JSON.parse(JSON.stringify(plane));
+          let planesCopy = JSON.parse(JSON.stringify(planes));
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
             this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
             planesCopy,
           );
-          planeCopy = plane;
+          planeCopy = JSON.parse(JSON.stringify(plane));
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             planeCopy,
@@ -93,8 +93,8 @@ export class DelayedPlaneService {
           const cadAirports: cadAirport[] =
             await this.cadAirportService.getAirports(restrictions);
 
-          planeCopy = plane;
-          planesCopy = planes;
+          planeCopy = JSON.parse(JSON.stringify(plane));
+          planesCopy = JSON.parse(JSON.stringify(planes));
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
             planeCopy,
             planesCopy,
@@ -142,15 +142,15 @@ export class DelayedPlaneService {
           const restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
-          let planeCopy = plane;
-          let planesCopy = planes;
+          let planeCopy = JSON.parse(JSON.stringify(plane));
+          let planesCopy = JSON.parse(JSON.stringify(planes));
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
             this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
             planesCopy,
           );
 
-          planeCopy = plane;
+          planeCopy = JSON.parse(JSON.stringify(plane));
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             planeCopy,
@@ -160,8 +160,8 @@ export class DelayedPlaneService {
           const cadAirports: cadAirport[] =
             await this.cadAirportService.getAirports(restrictions);
 
-          planeCopy = plane;
-          planesCopy = planes;
+          planeCopy = JSON.parse(JSON.stringify(plane));
+          planesCopy = JSON.parse(JSON.stringify(planes));
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
             planeCopy,
             planesCopy,
