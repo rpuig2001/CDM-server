@@ -594,7 +594,6 @@ export class SlotService {
     calcPlane: DelayedPlane,
     plane: DelayedPlane,
   ): Promise<DelayedPlane> {
-    console.log(`${calcPlane.ctot} - ${plane.ctot}`);
     /*Making CTOT valid if:
         1. existing ctot > new ctot (only if CTOT exists already).
         2. (new CTOT - taxiTime) > (timeNow + 5min)
@@ -613,16 +612,18 @@ export class SlotService {
             ),
           )
         ) {
-          console.log(`validated ${calcPlane.ctot} for ${calcPlane.callsign}`);
+          console.log(
+            `${plane.callsign} - Validated CTOT [${calcPlane.ctot}] (Previous CTOT -> [${plane.ctot}])`,
+          );
           plane = calcPlane;
         } else {
           console.log(
-            `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${calcPlane.ctot} - ${calcPlane.taxi} < now+5)`,
+            `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is later than now+5, using CTOT [${plane.ctot}])`,
           );
         }
       } else {
         console.log(
-          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${plane.ctot} < ${calcPlane.ctot})`,
+          `${plane.callsign} - Not Validate CTOT [${calcPlane.ctot}] (Reason: Previous CTOT [${plane.ctot}] < New CTOT [${calcPlane.ctot}])`,
         );
       }
     } else if (calcPlane.ctot != '') {
@@ -638,11 +639,13 @@ export class SlotService {
           ),
         )
       ) {
-        console.log(`validated ${calcPlane.ctot} for ${calcPlane.callsign}`);
+        console.log(
+          `${plane.callsign} - Validated CTOT [${calcPlane.ctot}] (Previous CTOT -> [${plane.ctot}])`,
+        );
         plane = calcPlane;
       } else {
         console.log(
-          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${calcPlane.ctot} - ${calcPlane.taxi} < now + 5min )`,
+          `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is later than now+5, using CTOT [${plane.ctot}])`,
         );
       }
     }
