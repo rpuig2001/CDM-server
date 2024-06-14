@@ -119,6 +119,7 @@ export class SlotService {
           //Set automatically airbone
           //console.log(`${existingPlane.callsign} just departed, updating`);
           existingPlane.atot = this.helperService.getCurrentUTCTime();
+          existingPlane.cdmSts = '';
           existingPlane.modify = true;
 
           let recalculateAirspaces = false;
