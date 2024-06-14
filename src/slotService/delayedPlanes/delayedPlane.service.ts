@@ -76,23 +76,25 @@ export class DelayedPlaneService {
           const restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
+          let planeCopy = plane;
           let calcPlane = await this.slotServiceService.calculatePlane(
-            plane,
+            planeCopy,
             this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
             planes,
           );
-          let initialPlane = plane;
-          initialPlane = await this.slotServiceService.makeCTOTvalid(
+          planeCopy = plane;
+          const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
-            plane,
+            planeCopy,
           );
 
           //Get cadAirports
           const cadAirports: cadAirport[] =
             await this.cadAirportService.getAirports(restrictions);
 
+          planeCopy = plane;
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
-            plane,
+            planeCopy,
             planes,
             cadAirports,
             calcPlane,
@@ -138,23 +140,26 @@ export class DelayedPlaneService {
           const restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
+          let planeCopy = plane;
           let calcPlane = await this.slotServiceService.calculatePlane(
-            plane,
+            planeCopy,
             this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
             planes,
           );
-          let initialPlane = plane;
-          initialPlane = await this.slotServiceService.makeCTOTvalid(
+
+          planeCopy = plane;
+          const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
-            initialPlane,
+            planeCopy,
           );
 
           //Get cadAirports
           const cadAirports: cadAirport[] =
             await this.cadAirportService.getAirports(restrictions);
 
+          planeCopy = plane;
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
-            plane,
+            planeCopy,
             planes,
             cadAirports,
             calcPlane,
