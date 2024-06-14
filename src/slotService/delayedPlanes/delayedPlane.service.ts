@@ -41,6 +41,8 @@ export class DelayedPlaneService {
   ): Promise<DelayedPlane> {
     let plane = await this.getDelayedPlaneByCallsign(callsign);
     let previousTTOT;
+    let planeCopy = null;
+    let planesCopy = null;
     if (plane) {
       if (cdmSts == 'I') {
         plane = await this.resetAirspacesToEobt(plane);
@@ -76,8 +78,8 @@ export class DelayedPlaneService {
           const restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
-          let planeCopy = JSON.parse(JSON.stringify(plane));
-          let planesCopy = JSON.parse(JSON.stringify(planes));
+          planeCopy = JSON.parse(JSON.stringify(plane));
+          planesCopy = JSON.parse(JSON.stringify(planes));
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
             this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
@@ -142,8 +144,8 @@ export class DelayedPlaneService {
           const restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
-          let planeCopy = JSON.parse(JSON.stringify(plane));
-          let planesCopy = JSON.parse(JSON.stringify(planes));
+          planeCopy = JSON.parse(JSON.stringify(plane));
+          planesCopy = JSON.parse(JSON.stringify(planes));
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
             this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
@@ -186,6 +188,9 @@ export class DelayedPlaneService {
 
       return plane;
     }
+
+    planeCopy = null;
+    planesCopy = null;
 
     return null;
   }

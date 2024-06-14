@@ -283,24 +283,31 @@ export class SlotService {
       counter: 0,
     };
 
+    let counterArray: AirspaceCounter[] = [];
+    let counter = 0;
+    let entryTime1 = '';
+    let exitTime1 = '';
+    let entryTime2 = '';
+    let exitTime2 = '';
+
     while (isOverloaded) {
       await new Promise((resolve) => setImmediate(resolve));
-      const counterArray: AirspaceCounter[] = [];
+      counterArray = [];
 
       for (const myairspace of myairspaces) {
         /*console.log(
             `${plane.callsign} - Airspace ${myairspace.airspace} -> ENTRY: ${myairspace.entryTime}, EXIT: ${myairspace.exitTime}`,
           );*/
-        let counter = 0;
+        counter = 0;
 
         for (const p of planes) {
           if (p.callsign != plane.callsign && p.cdmSts != 'I') {
             for (const airspace of p.airspaces) {
               if (airspace.airspace === myairspace.airspace) {
-                const entryTime1 = myairspace.entryTime;
-                const exitTime1 = myairspace.exitTime;
-                const entryTime2 = airspace.entryTime;
-                const exitTime2 = airspace.exitTime;
+                entryTime1 = myairspace.entryTime;
+                exitTime1 = myairspace.exitTime;
+                entryTime2 = airspace.entryTime;
+                exitTime2 = airspace.exitTime;
 
                 if (
                   this.isBetweenEntryAndExit(
@@ -506,6 +513,12 @@ export class SlotService {
 
     console.log(`Calculating ${planes.length} planes`);
 
+    let planeCopy = null;
+    let planesCopy = null;
+    let initialPlane = null;
+    let calcPlane = null;
+    let tempTTOT = '';
+
     let counter = 1;
     for (let i = 0; i < planes.length; i++) {
       await new Promise((resolve) => setImmediate(resolve));
@@ -517,7 +530,7 @@ export class SlotService {
       } else if (planes[i].cdmSts == 'I') {
         //console.log(`Skipping ${plane.callsign} as cdm status is INVALID`);
       } else {
-        let tempTTOT = this.helperService.addMinutesToTime(
+        tempTTOT = this.helperService.addMinutesToTime(
           planes[i].eobt,
           planes[i].taxi,
         );
@@ -536,16 +549,12 @@ export class SlotService {
           );
         }
 
-        let planeCopy = JSON.parse(JSON.stringify(planes[i]));
-        let planesCopy = JSON.parse(JSON.stringify(planes));
-        let calcPlane = await this.calculatePlane(
-          planeCopy,
-          tempTTOT,
-          planesCopy,
-        );
+        planeCopy = JSON.parse(JSON.stringify(planes[i]));
+        planesCopy = JSON.parse(JSON.stringify(planes));
+        calcPlane = await this.calculatePlane(planeCopy, tempTTOT, planesCopy);
 
         planeCopy = JSON.parse(JSON.stringify(planes[i]));
-        const initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy);
+        initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy);
 
         planeCopy = JSON.parse(JSON.stringify(planes[i]));
         planesCopy = JSON.parse(JSON.stringify(planes));
@@ -564,6 +573,9 @@ export class SlotService {
       );*/
       }
     }
+
+    planeCopy = null;
+    planesCopy = null;
 
     try {
       await this.delayedPlaneService.saveDelayedPlane(planes);
