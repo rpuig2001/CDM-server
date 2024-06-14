@@ -624,7 +624,7 @@ export class SlotService {
         }
       } else {
         console.log(
-          `${plane.callsign} - Not Validate CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: Previous CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]] < New CTOT [${calcPlane.ctot}])`,
+          `${plane.callsign} - Not Validate CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: New CTOT [${calcPlane.ctot}] > Previous CTOT [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
         );
       }
     } else if (calcPlane.ctot != '') {
