@@ -598,6 +598,7 @@ export class SlotService {
     /*Making CTOT valid if:
         1. existing ctot > new ctot (only if CTOT exists already) - Only when TSAT is same as before.
         2. (new CTOT - taxiTime) > (timeNow + 5min)
+        3. If calcPlaneCTOT = '', then onny remove CTOT if eobt/tsat+taxi > now+5min
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
       if (plane.ctot == calcPlane.ctot) {
@@ -653,6 +654,31 @@ export class SlotService {
         console.log(
           `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
         );
+      }
+    } else if (calcPlane.ctot == '' && plane.ctot != '') {
+      let tempTTOT = '';
+      if (calcPlane.tsat != '') {
+        tempTTOT = this.helperService.addMinutesToTime(
+          calcPlane.tsat,
+          calcPlane.taxi,
+        );
+      } else {
+        tempTTOT = this.helperService.addMinutesToTime(
+          calcPlane.eobt,
+          calcPlane.taxi,
+        );
+      }
+
+      if (
+        this.helperService.isTime1GreaterThanTime2(
+          tempTTOT,
+          this.helperService.addMinutesToTime(
+            this.helperService.getCurrentUTCTime(),
+            5,
+          ),
+        )
+      ) {
+        plane = calcPlane;
       }
     }
     return plane;

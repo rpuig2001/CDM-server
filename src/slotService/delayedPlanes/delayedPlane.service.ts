@@ -49,6 +49,7 @@ export class DelayedPlaneService {
         mainPlane = await this.resetAirspacesToEobt(mainPlane);
       } else {
         if (tsat.length === 4) {
+          console.log(`${mainPlane.callsign} - REQ - Setting TSAT ${tsat}`);
           if (mainPlane.ctot != '') {
             previousTTOT = mainPlane.ctot;
           } else if (mainPlane.tsat != '') {
@@ -115,8 +116,11 @@ export class DelayedPlaneService {
             initialPlane,
           );
         } else if (mainPlane && tsat.length === 0) {
+          console.log(`${mainPlane.callsign} - REQ - Removing TSAT`);
           if (mainPlane.ctot != '') {
             previousTTOT = mainPlane.ctot;
+            mainPlane.ctot = '';
+            mainPlane.mostPenalizingAirspace = '';
           } else if (mainPlane.tsat != '') {
             previousTTOT = this.helperService.addMinutesToTime(
               mainPlane.tsat,
