@@ -33,6 +33,14 @@ export class SlotService {
         await this.restrictionService.getRestrictions(),
       ]);
 
+    //Check Schengen DEP or DEST
+    // eslint-disable-next-line prettier/prettier
+    const schengenArea = ['BI','EB','ED','EE','EF','EH','EK','EL','EN','EP','ES','ET','EV','EY','GC','LE','LF','LG','LC','LH','LI','LJ','LK','LM','LO','LP','LS','LZ','LD','LT','DA','DC','GM',];
+    let isSchengen = null;
+    let isAirborne = false;
+    let existingPlane = null;
+    let myairspaces: AirspaceComplete[] = null;
+
     let counter = 1;
     for (const plane of planes) {
       await new Promise((resolve) => setImmediate(resolve));
@@ -44,44 +52,7 @@ export class SlotService {
         //console.log(`Flightplan not available or VFR Flightplan, skipping`);
         continue;
       }
-
-      //Check Schengen DEP or DEST
-      const schengenArea = [
-        'BI',
-        'EB',
-        'ED',
-        'EE',
-        'EF',
-        'EH',
-        'EK',
-        'EL',
-        'EN',
-        'EP',
-        'ES',
-        'ET',
-        'EV',
-        'EY',
-        'GC',
-        'LE',
-        'LF',
-        'LG',
-        'LC',
-        'LH',
-        'LI',
-        'LJ',
-        'LK',
-        'LM',
-        'LO',
-        'LP',
-        'LS',
-        'LZ',
-        'LD',
-        'LT',
-        'DA',
-        'DC',
-        'GM',
-      ];
-      const isSchengen = schengenArea.find((countryCode) => {
+      isSchengen = schengenArea.find((countryCode) => {
         return (
           countryCode === flight_plan.departure.substring(0, 2) ||
           countryCode === flight_plan.arrival.substring(0, 2)
@@ -92,9 +63,9 @@ export class SlotService {
         continue;
       }
 
-      const isAirborne = plane.groundspeed > 80;
+      isAirborne = plane.groundspeed > 80;
 
-      let existingPlane = existingPlanes.find((existingPlane) => {
+      existingPlane = existingPlanes.find((existingPlane) => {
         return existingPlane.callsign === plane.callsign;
       });
 
@@ -183,15 +154,14 @@ export class SlotService {
       }
 
       //console.log(`Calculating route for ${plane.callsign}`);
-      const myairspaces: AirspaceComplete[] =
-        await this.routeService.calculateEntryExitTimes(
-          `${flight_plan.departure} ${flight_plan.route} ${flight_plan.arrival}`,
-          this.helperService.addMinutesToTime(flight_plan.deptime, 15),
-          flight_plan.cruise_tas,
-          waypoints,
-          airways,
-          airspaces,
-        );
+      myairspaces = await this.routeService.calculateEntryExitTimes(
+        `${flight_plan.departure} ${flight_plan.route} ${flight_plan.arrival}`,
+        this.helperService.addMinutesToTime(flight_plan.deptime, 15),
+        flight_plan.cruise_tas,
+        waypoints,
+        airways,
+        airspaces,
+      );
 
       // Sorting function
       myairspaces.sort((a, b) => {
