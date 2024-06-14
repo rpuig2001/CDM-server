@@ -77,10 +77,11 @@ export class DelayedPlaneService {
 
           //calculate
           let planeCopy = plane;
+          let planesCopy = planes;
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
             this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
-            planes,
+            planesCopy,
           );
           planeCopy = plane;
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
@@ -93,9 +94,10 @@ export class DelayedPlaneService {
             await this.cadAirportService.getAirports(restrictions);
 
           planeCopy = plane;
+          planesCopy = planes;
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
             planeCopy,
-            planes,
+            planesCopy,
             cadAirports,
             calcPlane,
             this.helperService.addMinutesToTime(plane.tsat, plane.taxi),
@@ -141,10 +143,11 @@ export class DelayedPlaneService {
 
           //calculate
           let planeCopy = plane;
+          let planesCopy = planes;
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
             this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
-            planes,
+            planesCopy,
           );
 
           planeCopy = plane;
@@ -158,9 +161,10 @@ export class DelayedPlaneService {
             await this.cadAirportService.getAirports(restrictions);
 
           planeCopy = plane;
+          planesCopy = planes;
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
             planeCopy,
-            planes,
+            planesCopy,
             cadAirports,
             calcPlane,
             this.helperService.addMinutesToTime(plane.tsat, plane.taxi),

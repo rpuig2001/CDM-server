@@ -552,14 +552,20 @@ export class SlotService {
         }
 
         let planeCopy = plane;
-        let calcPlane = await this.calculatePlane(planeCopy, tempTTOT, planes);
+        let planesCopy = planes;
+        let calcPlane = await this.calculatePlane(
+          planeCopy,
+          tempTTOT,
+          planesCopy,
+        );
         planeCopy = plane;
         const initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy);
 
         planeCopy = plane;
+        planesCopy = planes;
         calcPlane = await this.calculatePlaneDestination(
           planeCopy,
-          planes,
+          planesCopy,
           cadAirports,
           calcPlane,
           tempTTOT,
