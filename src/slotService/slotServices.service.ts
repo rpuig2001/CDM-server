@@ -432,7 +432,7 @@ export class SlotService {
         checked = true;
         for (const p of planes) {
           if (p.airspaces.length > 0) {
-            if (p.callsign != calcPlane.callsign && p.cdmSts == 'I') {
+            if (p.callsign != calcPlane.callsign && p.cdmSts != 'I') {
               if (p.arrival == calcPlane.arrival) {
                 const otherArrivalTime =
                   p.airspaces[p.airspaces.length - 1].exitTime;
