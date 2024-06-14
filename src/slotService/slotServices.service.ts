@@ -439,12 +439,12 @@ export class SlotService {
                     otherArrivalTime,
                     Math.floor(60 / rate),
                   );
-                  console.log(
+                  /*console.log(
                     `${calcPlane.callsign} using arrivalTime: ${initialArrivalTime} / new arrivalTime ${arrivalTime}`,
-                  );
-                  console.log(
+                  );*/
+                  /*console.log(
                     `${calcPlane.callsign} conflicts with ${p.callsign} which lands at ${otherArrivalTime} (Rate ${rate})`,
-                  );
+                  );*/
                   checked = false;
                 }
               }
@@ -528,24 +528,12 @@ export class SlotService {
           );
         }
         if (planes[i].ctot != '') {
-          const diff = this.helperService.getTimeDifferenceInMinutes(
+          //Update airspace times
+          planes[i].airspaces = await this.moveTimesOfAirspace(
+            planes[i].airspaces,
             tempTTOT,
             planes[i].ctot,
           );
-          if (diff !== 0) {
-            for (let z = 0; z < planes[i].airspaces.length; z++) {
-              planes[i].airspaces[z].entryTime =
-                this.helperService.removeMinutesFromTime(
-                  planes[i].airspaces[z].entryTime,
-                  diff,
-                );
-              planes[i].airspaces[z].exitTime =
-                this.helperService.removeMinutesFromTime(
-                  planes[i].airspaces[z].exitTime,
-                  diff,
-                );
-            }
-          }
         }
 
         let planeCopy = JSON.parse(JSON.stringify(planes[i]));
@@ -555,6 +543,7 @@ export class SlotService {
           tempTTOT,
           planesCopy,
         );
+
         planeCopy = JSON.parse(JSON.stringify(planes[i]));
         const initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy);
 
@@ -567,6 +556,7 @@ export class SlotService {
           calcPlane,
           tempTTOT,
         );
+
         planes[i] = await this.makeCTOTvalid(calcPlane, initialPlane);
 
         /*console.log(
@@ -594,7 +584,6 @@ export class SlotService {
         2. (new CTOT - taxiTime) > (timeNow + 5min)
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
-      console.log(`${calcPlane.ctot} - ${plane.ctot}`);
       if (
         this.helperService.isTime1GreaterThanTime2(plane.ctot, calcPlane.ctot)
       ) {
@@ -620,7 +609,6 @@ export class SlotService {
         );
       }
     } else if (calcPlane.ctot != '') {
-      console.log(`${calcPlane.ctot} - ${plane.ctot}`);
       if (
         this.helperService.isTime1GreaterThanTime2(
           this.helperService.removeMinutesFromTime(
@@ -637,7 +625,7 @@ export class SlotService {
         plane = calcPlane;
       } else {
         console.log(
-          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${calcPlane.ctot} - ${calcPlane.taxi} < now+5)`,
+          `NOT validated ${calcPlane.ctot} for ${calcPlane.callsign} (${calcPlane.ctot} - ${calcPlane.taxi} < now + 5min )`,
         );
       }
     }
