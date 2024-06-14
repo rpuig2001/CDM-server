@@ -613,17 +613,17 @@ export class SlotService {
           )
         ) {
           console.log(
-            `${plane.callsign} - Validated CTOT [${calcPlane.ctot}] (Previous CTOT -> [${plane.ctot}])`,
+            `${plane.callsign} - Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
           );
           plane = calcPlane;
         } else {
           console.log(
-            `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is later than now+5, using CTOT [${plane.ctot}])`,
+            `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
           );
         }
       } else {
         console.log(
-          `${plane.callsign} - Not Validate CTOT [${calcPlane.ctot}] (Reason: Previous CTOT [${plane.ctot}] < New CTOT [${calcPlane.ctot}])`,
+          `${plane.callsign} - Not Validate CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: Previous CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]] < New CTOT [${calcPlane.ctot}])`,
         );
       }
     } else if (calcPlane.ctot != '') {
@@ -640,12 +640,12 @@ export class SlotService {
         )
       ) {
         console.log(
-          `${plane.callsign} - Validated CTOT [${calcPlane.ctot}] (Previous CTOT -> [${plane.ctot}])`,
+          `${plane.callsign} - Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
         );
         plane = calcPlane;
       } else {
         console.log(
-          `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is later than now+5, using CTOT [${plane.ctot}])`,
+          `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
         );
       }
     }
