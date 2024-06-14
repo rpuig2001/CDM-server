@@ -599,8 +599,9 @@ export class SlotService {
         2. (new CTOT - taxiTime) > (timeNow + 5min)
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
-      if (
-        plane.ctot == calcPlane.ctot ||
+      if (plane.ctot == calcPlane.ctot) {
+        plane = calcPlane;
+      } else if (
         this.helperService.isTime1GreaterThanTime2(plane.ctot, calcPlane.ctot)
       ) {
         if (
