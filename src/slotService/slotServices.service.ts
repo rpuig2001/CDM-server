@@ -596,14 +596,18 @@ export class SlotService {
     plane: DelayedPlane,
   ): Promise<DelayedPlane> {
     /*Making CTOT valid if:
-        1. existing ctot > new ctot (only if CTOT exists already).
+        1. existing ctot > new ctot (only if CTOT exists already) - Only when TSAT is same as before.
         2. (new CTOT - taxiTime) > (timeNow + 5min)
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
       if (plane.ctot == calcPlane.ctot) {
         plane = calcPlane;
       } else if (
-        this.helperService.isTime1GreaterThanTime2(plane.ctot, calcPlane.ctot)
+        this.helperService.isTime1GreaterThanTime2(
+          plane.ctot,
+          calcPlane.ctot,
+        ) ||
+        plane.tsat != calcPlane.tsat
       ) {
         if (
           this.helperService.isTime1GreaterThanTime2(
