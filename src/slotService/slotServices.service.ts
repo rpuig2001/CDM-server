@@ -518,6 +518,7 @@ export class SlotService {
     let initialPlane = null;
     let calcPlane = null;
     let tempTTOT = '';
+    let mainPlane = null;
 
     let counter = 1;
     for (let i = 0; i < planes.length; i++) {
@@ -530,33 +531,34 @@ export class SlotService {
       } else if (planes[i].cdmSts == 'I') {
         //console.log(`Skipping ${plane.callsign} as cdm status is INVALID`);
       } else {
+        mainPlane = JSON.parse(JSON.stringify(planes[i]));
         tempTTOT = this.helperService.addMinutesToTime(
-          planes[i].eobt,
-          planes[i].taxi,
+          mainPlane.eobt,
+          mainPlane.taxi,
         );
-        if (planes[i].tsat != '') {
+        if (mainPlane.tsat != '') {
           tempTTOT = this.helperService.addMinutesToTime(
-            planes[i].tsat,
-            planes[i].taxi,
+            mainPlane.tsat,
+            mainPlane.taxi,
           );
         }
-        if (planes[i].ctot != '') {
+        if (mainPlane.ctot != '') {
           //Update airspace times
-          planes[i].airspaces = await this.moveTimesOfAirspace(
-            planes[i].airspaces,
+          mainPlane.airspaces = await this.moveTimesOfAirspace(
+            mainPlane.airspaces,
             tempTTOT,
-            planes[i].ctot,
+            mainPlane.ctot,
           );
         }
 
-        planeCopy = JSON.parse(JSON.stringify(planes[i]));
+        planeCopy = JSON.parse(JSON.stringify(mainPlane));
         planesCopy = JSON.parse(JSON.stringify(planes));
         calcPlane = await this.calculatePlane(planeCopy, tempTTOT, planesCopy);
 
-        planeCopy = JSON.parse(JSON.stringify(planes[i]));
+        planeCopy = JSON.parse(JSON.stringify(mainPlane));
         initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy);
 
-        planeCopy = JSON.parse(JSON.stringify(planes[i]));
+        planeCopy = JSON.parse(JSON.stringify(mainPlane));
         planesCopy = JSON.parse(JSON.stringify(planes));
         calcPlane = await this.calculatePlaneDestination(
           planeCopy,
@@ -576,6 +578,7 @@ export class SlotService {
 
     planeCopy = null;
     planesCopy = null;
+    mainPlane = null;
 
     try {
       await this.delayedPlaneService.saveDelayedPlane(planes);
@@ -591,12 +594,14 @@ export class SlotService {
     calcPlane: DelayedPlane,
     plane: DelayedPlane,
   ): Promise<DelayedPlane> {
+    console.log(`${calcPlane.ctot} - ${plane.ctot}`);
     /*Making CTOT valid if:
         1. existing ctot > new ctot (only if CTOT exists already).
         2. (new CTOT - taxiTime) > (timeNow + 5min)
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
       if (
+        plane.ctot == calcPlane.ctot ||
         this.helperService.isTime1GreaterThanTime2(plane.ctot, calcPlane.ctot)
       ) {
         if (
