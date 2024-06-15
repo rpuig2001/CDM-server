@@ -614,7 +614,7 @@ export class SlotService {
         );
         return plane;
       }
-    } else if (calcPlane.ctot != '' && plane.ctot == '') {
+    } else if (calcPlane.ctot != '') {
       if (
         this.helperService.isTime1GreaterThanTime2(
           this.helperService.removeMinutesFromTime(
