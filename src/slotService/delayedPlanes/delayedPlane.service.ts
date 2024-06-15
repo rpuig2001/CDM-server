@@ -95,6 +95,7 @@ export class DelayedPlaneService {
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             planeCopy,
+            1,
           );
 
           //Get cadAirports
@@ -114,6 +115,7 @@ export class DelayedPlaneService {
           plane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             initialPlane,
+            2,
           );
         } else if (mainPlane && tsat.length === 0) {
           console.log(`${mainPlane.callsign} - REQ - Removing TSAT`);
@@ -164,6 +166,7 @@ export class DelayedPlaneService {
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             planeCopy,
+            1,
           );
 
           //Get cadAirports
@@ -183,6 +186,7 @@ export class DelayedPlaneService {
           plane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             initialPlane,
+            2,
           );
         }
       }

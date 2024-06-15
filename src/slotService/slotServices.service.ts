@@ -532,7 +532,7 @@ export class SlotService {
         calcPlane = await this.calculatePlane(planeCopy, tempTTOT, planesCopy);
 
         planeCopy = JSON.parse(JSON.stringify(mainPlane));
-        initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy);
+        initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy, 1);
 
         planeCopy = JSON.parse(JSON.stringify(mainPlane));
         planesCopy = JSON.parse(JSON.stringify(planes));
@@ -544,7 +544,7 @@ export class SlotService {
           tempTTOT,
         );
 
-        planes[i] = await this.makeCTOTvalid(calcPlane, initialPlane);
+        planes[i] = await this.makeCTOTvalid(calcPlane, initialPlane, 2);
 
         /*console.log(
         `----------------- Finished processing ${plane.callsign} -----------------`,
@@ -569,6 +569,7 @@ export class SlotService {
   async makeCTOTvalid(
     calcPlane: DelayedPlane,
     plane: DelayedPlane,
+    trigger: number,
   ): Promise<DelayedPlane> {
     /*Making CTOT valid if:
         1. existing ctot > new ctot (only if CTOT exists already) - Only when TSAT is same as before.
@@ -636,7 +637,7 @@ export class SlotService {
         );
         return plane;
       }
-    } else if (calcPlane.ctot == '' && plane.ctot != '') {
+    } else if (calcPlane.ctot == '' && plane.ctot != '' && trigger == 1) {
       let tempTTOT = '';
       if (calcPlane.tsat != '') {
         tempTTOT = this.helperService.addMinutesToTime(
