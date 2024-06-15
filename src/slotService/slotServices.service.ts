@@ -577,6 +577,9 @@ export class SlotService {
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
       if (plane.ctot == calcPlane.ctot) {
+        console.log(
+          `${plane.callsign} - Validated same CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
+        );
         return calcPlane;
       } else if (
         this.helperService.isTime1GreaterThanTime2(
@@ -602,11 +605,13 @@ export class SlotService {
           console.log(
             `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
           );
+          return plane;
         }
       } else {
         console.log(
           `${plane.callsign} - Not Validate CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: New CTOT [${calcPlane.ctot}] > Previous CTOT [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
         );
+        return plane;
       }
     } else if (calcPlane.ctot != '') {
       if (
@@ -629,6 +634,7 @@ export class SlotService {
         console.log(
           `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
         );
+        return plane;
       }
     } else if (calcPlane.ctot == '' && plane.ctot != '') {
       let tempTTOT = '';
@@ -657,8 +663,14 @@ export class SlotService {
           `${plane.callsign} - Validated to remove CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
         );
         return calcPlane;
+      } else {
+        console.log(
+          `${plane.callsign} - Not Validated to remove CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
+        );
+        return plane;
       }
     }
+    console.log(`${plane.callsign} - No validation conditions met for`);
     return plane;
   }
 
