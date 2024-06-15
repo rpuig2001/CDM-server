@@ -613,7 +613,7 @@ export class SlotService {
         );
         return plane;
       }
-    } else if (calcPlane.ctot != '') {
+    } else if (calcPlane.ctot != '' && plane.ctot == '') {
       if (
         this.helperService.isTime1GreaterThanTime2(
           this.helperService.removeMinutesFromTime(
@@ -670,7 +670,6 @@ export class SlotService {
         return plane;
       }
     }
-    console.log(`${plane.callsign} - No validation conditions met for`);
     return plane;
   }
 
