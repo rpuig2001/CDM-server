@@ -577,7 +577,7 @@ export class SlotService {
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
       if (plane.ctot == calcPlane.ctot) {
-        plane = calcPlane;
+        return calcPlane;
       } else if (
         this.helperService.isTime1GreaterThanTime2(
           plane.ctot,
@@ -597,7 +597,7 @@ export class SlotService {
           console.log(
             `${plane.callsign} - Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
           );
-          plane = calcPlane;
+          return calcPlane;
         } else {
           console.log(
             `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
@@ -624,7 +624,7 @@ export class SlotService {
         console.log(
           `${plane.callsign} - Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
         );
-        plane = calcPlane;
+        return calcPlane;
       } else {
         console.log(
           `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
@@ -656,7 +656,7 @@ export class SlotService {
         console.log(
           `${plane.callsign} - Validated to remove CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
         );
-        plane = calcPlane;
+        return calcPlane;
       }
     }
     return plane;

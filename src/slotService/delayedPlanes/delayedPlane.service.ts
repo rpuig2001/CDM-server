@@ -119,8 +119,6 @@ export class DelayedPlaneService {
           console.log(`${mainPlane.callsign} - REQ - Removing TSAT`);
           if (mainPlane.ctot != '') {
             previousTTOT = mainPlane.ctot;
-            mainPlane.ctot = '';
-            mainPlane.mostPenalizingAirspace = '';
           } else if (mainPlane.tsat != '') {
             previousTTOT = this.helperService.addMinutesToTime(
               mainPlane.tsat,
