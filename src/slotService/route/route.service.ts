@@ -86,32 +86,30 @@ export class RouteService {
       } else if (foundWaypoints.length === 1) {
         //If only 1 wpt was found, then simply use this.
         routeWaypoints.push(foundWaypoints[0]);
-      } else {
-        if (i > 0 && i < routeStringItems.length - 1) {
-          const airway = airways.find(
-            (airway) => airway.nameAirway === routeItem,
+      } else if (i > 0 && i < routeStringItems.length - 1) {
+        const airway = airways.find(
+          (airway) => airway.nameAirway === routeItem,
+        );
+
+        if (airway) {
+          const index1 = airway.waypointsForAirway.findIndex(
+            (item) => item.name === routeStringItems[i - 1],
+          );
+          const index2 = airway.waypointsForAirway.findIndex(
+            (item) => item.name === routeStringItems[i + 1],
           );
 
-          if (airway) {
-            const index1 = airway.waypointsForAirway.findIndex(
-              (item) => item.name === routeStringItems[i - 1],
+          if (index1 !== -1 && index2 !== -1) {
+            const start = Math.min(index1, index2);
+            const end = Math.max(index1, index2);
+            routeWaypoints.push(
+              ...airway.waypointsForAirway.slice(start + 1, end),
             );
-            const index2 = airway.waypointsForAirway.findIndex(
-              (item) => item.name === routeStringItems[i + 1],
-            );
-
-            if (index1 !== -1 && index2 !== -1) {
-              const start = Math.min(index1, index2);
-              const end = Math.max(index1, index2);
-              routeWaypoints.push(
-                ...airway.waypointsForAirway.slice(start + 1, end),
-              );
-            } else {
-              //console.log(`Waypoints of airway ${routeItem} not found`);
-            }
           } else {
-            //console.log(`Airway ${routeItem} not found`);
+            //console.log(`Waypoints of airway ${routeItem} not found`);
           }
+        } else {
+          //console.log(`Airway ${routeItem} not found`);
         }
       }
     }
@@ -379,12 +377,19 @@ export class RouteService {
   ): Promise<Waypoint[]> {
     const flightCoordinates: Waypoint[] = [];
     let time = departureTime;
+    let distanceToNextWaypoint;
+    let timeToNextWaypoint;
+    let numberOfSteps;
+    let latStep;
+    let lonStep;
+    let lat;
+    let lon;
 
     for (let i = 0; i < route.length - 1; i++) {
       const currentWaypoint = route[i];
       const nextWaypoint = route[i + 1];
 
-      let distanceToNextWaypoint = await this.calculateDistanceWaypoints(
+      distanceToNextWaypoint = await this.calculateDistanceWaypoints(
         currentWaypoint.lat,
         currentWaypoint.lon,
         nextWaypoint.lat,
@@ -394,17 +399,16 @@ export class RouteService {
       distanceToNextWaypoint = distanceToNextWaypoint * 1000;
 
       // Calculate the time it takes to reach the next waypoint based on speed
-      const timeToNextWaypoint =
-        (await distanceToNextWaypoint) / (speed * 0.514444); // Convert speed from knots to m/s
+      timeToNextWaypoint = distanceToNextWaypoint / (speed * 0.514444); // Convert speed from knots to m/s
 
       // Generate coordinates at one-minute intervals along the route
-      const numberOfSteps = Math.ceil(timeToNextWaypoint / 60); // Convert time to minutes
-      const latStep = (nextWaypoint.lat - currentWaypoint.lat) / numberOfSteps;
-      const lonStep = (nextWaypoint.lon - currentWaypoint.lon) / numberOfSteps;
+      numberOfSteps = Math.ceil(timeToNextWaypoint / 60); // Convert time to minutes
+      latStep = (nextWaypoint.lat - currentWaypoint.lat) / numberOfSteps;
+      lonStep = (nextWaypoint.lon - currentWaypoint.lon) / numberOfSteps;
 
       for (let j = 0; j < numberOfSteps; j++) {
-        const lat = currentWaypoint.lat + latStep * j;
-        const lon = currentWaypoint.lon + lonStep * j;
+        lat = currentWaypoint.lat + latStep * j;
+        lon = currentWaypoint.lon + lonStep * j;
         flightCoordinates.push({
           name: time,
           lat,

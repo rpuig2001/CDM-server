@@ -134,28 +134,26 @@ export class SlotService {
 
           delayedPlanes.push(existingPlane);
           continue;
+        } else if (existingPlane.tsat != '') {
+          //console.log(`Plane controlled by CDM, skipping`);
+          existingPlane.modify = false;
+          delayedPlanes.push(existingPlane);
+          continue;
         } else {
-          if (existingPlane.tsat != '') {
-            //console.log(`Plane controlled by CDM, skipping`);
-            existingPlane.modify = false;
-            delayedPlanes.push(existingPlane);
-            continue;
+          //Check if new EOBT sent by the pilot
+          if (
+            isAirborne == false &&
+            existingPlane.eobt != flight_plan.deptime
+          ) {
+            //console.log(`Plane already fetched, updating EOBT as filed (${existingPlane.eobt} - ${plane.eobt})`);
+            existingPlane.modify = true;
+            existingPlane.eobt = flight_plan.deptime;
           } else {
-            //Check if new EOBT sent by the pilot
-            if (
-              isAirborne == false &&
-              existingPlane.eobt != flight_plan.deptime
-            ) {
-              //console.log(`Plane already fetched, updating EOBT as filed (${existingPlane.eobt} - ${plane.eobt})`);
-              existingPlane.modify = true;
-              existingPlane.eobt = flight_plan.deptime;
-            } else {
-              //console.log(`Plane already fetched, skipping`);
-              existingPlane.modify = false;
-            }
-            delayedPlanes.push(existingPlane);
-            continue;
+            //console.log(`Plane already fetched, skipping`);
+            existingPlane.modify = false;
           }
+          delayedPlanes.push(existingPlane);
+          continue;
         }
       }
 

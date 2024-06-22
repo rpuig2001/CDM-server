@@ -45,9 +45,7 @@ export class DelayedPlaneService {
     let planeCopy = null;
     let planesCopy = null;
     if (plane) {
-      if (cdmSts == 'I') {
-        mainPlane = await this.resetAirspacesToEobt(mainPlane);
-      } else {
+      if (cdmSts != 'I') {
         if (tsat.length === 4) {
           console.log(`${mainPlane.callsign} - REQ - Setting TSAT ${tsat}`);
           if (mainPlane.ctot != '') {
@@ -201,8 +199,6 @@ export class DelayedPlaneService {
       return plane;
     }
 
-    planeCopy = null;
-    planesCopy = null;
     mainPlane = null;
 
     return null;
