@@ -69,6 +69,7 @@ export class SlotService {
 
       isAirborne = plane.groundspeed > 80;
 
+      existingPlane = null;
       existingPlane = existingPlanes.find((existingPlane) => {
         return existingPlane.callsign === plane.callsign;
       });
@@ -113,6 +114,7 @@ export class SlotService {
           }
 
           if (recalculateAirspaces) {
+            console.log(`${existingPlane.callsign} - Recalulation airspaces.`);
             previousTTOT = this.helperService.addMinutesToTime(
               existingPlane.eobt,
               existingPlane.taxi,
@@ -157,7 +159,6 @@ export class SlotService {
         }
       }
 
-      //console.log(`Calculating route for ${plane.callsign}`);
       myairspaces = await this.routeService.calculateEntryExitTimes(
         `${flight_plan.departure} ${flight_plan.route} ${flight_plan.arrival}`,
         this.helperService.addMinutesToTime(flight_plan.deptime, 15),
@@ -182,6 +183,7 @@ export class SlotService {
         }
       });
 
+      myAtot = '';
       if (isAirborne) {
         myAtot = this.helperService.getCurrentUTCTime();
       }
@@ -210,8 +212,6 @@ export class SlotService {
         modify: true,
         cdmSts: '',
       });
-
-      existingPlane = null;
     }
 
     try {
