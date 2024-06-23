@@ -635,7 +635,7 @@ export class SlotService {
         );
         return plane;
       }
-    } else if (calcPlane.ctot == '' && plane.ctot != '' && trigger == 1) {
+    } else if (calcPlane.ctot == '' && plane.ctot != '' && trigger == 2) {
       let tempTTOT = '';
       if (calcPlane.tsat != '') {
         tempTTOT = this.helperService.addMinutesToTime(
