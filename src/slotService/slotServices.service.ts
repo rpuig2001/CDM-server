@@ -422,9 +422,9 @@ export class SlotService {
                   /*console.log(
                     `${calcPlane.callsign} using arrivalTime: ${initialArrivalTime} / new arrivalTime ${arrivalTime}`,
                   );*/
-                  console.log(
+                  /*console.log(
                     `${calcPlane.callsign} conflicts with ${p.callsign} which lands at ${otherArrivalTime} (Rate ${rate})`,
-                  );
+                  );*/
                   checked = false;
                 }
               }
