@@ -114,7 +114,6 @@ export class SlotService {
           }
 
           if (recalculateAirspaces) {
-            console.log(`${existingPlane.callsign} - Recalulation airspaces.`);
             previousTTOT = this.helperService.addMinutesToTime(
               existingPlane.eobt,
               existingPlane.taxi,

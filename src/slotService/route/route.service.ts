@@ -228,7 +228,7 @@ export class RouteService {
   async getAirspaces(): Promise<Airspace[]> {
     //Get Airspaces
     const geoJSONData = await this.fetchGeoJSONFromUrl(
-      'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/airspaces.json',
+      'https://raw.githubusercontent.com/rpuig2001/Capacity-Availability-Document-CDM/main/airspaces.geojson',
     );
     return geoJSONData.features.map((feature: any) => {
       const boundaries = this.convertCoordinatesToWaypoints(
