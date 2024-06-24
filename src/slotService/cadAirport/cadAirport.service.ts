@@ -62,7 +62,7 @@ export class CadAirportService {
     for (const a of cadAirports) {
       for (const r of restrictions) {
         if (a.icao == r.airspace) {
-          a.rate = 60 / r.capacity;
+          a.rate = r.capacity;
           a.reason = r.reason;
         }
       }
