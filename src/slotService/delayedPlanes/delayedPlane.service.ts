@@ -94,6 +94,7 @@ export class DelayedPlaneService {
             calcPlane,
             planeCopy,
             1,
+            true,
           );
 
           //Get cadAirports
@@ -114,6 +115,7 @@ export class DelayedPlaneService {
             calcPlane,
             initialPlane,
             2,
+            true,
           );
         } else if (mainPlane && tsat.length === 0) {
           console.log(`${mainPlane.callsign} - REQ - Removing TSAT`);
@@ -165,6 +167,7 @@ export class DelayedPlaneService {
             calcPlane,
             planeCopy,
             1,
+            true,
           );
 
           //Get cadAirports
@@ -185,6 +188,7 @@ export class DelayedPlaneService {
             calcPlane,
             initialPlane,
             2,
+            true,
           );
         }
       }

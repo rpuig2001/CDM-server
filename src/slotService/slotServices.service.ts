@@ -529,7 +529,7 @@ export class SlotService {
         calcPlane = await this.calculatePlane(planeCopy, tempTTOT, planesCopy);
 
         planeCopy = JSON.parse(JSON.stringify(mainPlane));
-        initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy, 1);
+        initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy, 1, false);
 
         planeCopy = JSON.parse(JSON.stringify(mainPlane));
         planesCopy = JSON.parse(JSON.stringify(planes));
@@ -541,7 +541,7 @@ export class SlotService {
           tempTTOT,
         );
 
-        planes[i] = await this.makeCTOTvalid(calcPlane, initialPlane, 2);
+        planes[i] = await this.makeCTOTvalid(calcPlane, initialPlane, 2, false);
 
         /*console.log(
         `----------------- Finished processing ${plane.callsign} -----------------`,
@@ -567,9 +567,10 @@ export class SlotService {
     calcPlane: DelayedPlane,
     plane: DelayedPlane,
     trigger: number,
+    canBeWorst: boolean,
   ): Promise<DelayedPlane> {
     /*Making CTOT valid if:
-        1. existing ctot > new ctot (only if CTOT exists already) - Only when TSAT is same as before.
+        1. existing ctot > new ctot (only if CTOT exists already) - Only when canBeWorst == false
         2. (new CTOT - taxiTime) > (timeNow + 5min)
         3. If calcPlaneCTOT = '', then onny remove CTOT if eobt/tsat+taxi > now+5min
         */
@@ -580,11 +581,8 @@ export class SlotService {
         );
         return calcPlane;
       } else if (
-        this.helperService.isTime1GreaterThanTime2(
-          plane.ctot,
-          calcPlane.ctot,
-        ) ||
-        plane.tsat != calcPlane.tsat
+        // eslint-disable-next-line prettier/prettier
+        (this.helperService.isTime1GreaterThanTime2(plane.ctot,calcPlane.ctot,) || plane.tsat != calcPlane.tsat) || canBeWorst
       ) {
         if (
           this.helperService.isTime1GreaterThanTime2(
