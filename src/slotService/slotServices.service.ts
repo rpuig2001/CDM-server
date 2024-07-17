@@ -213,7 +213,7 @@ export class SlotService {
 
     try {
       await this.delayedPlaneService.updatePlanes(delayedPlanes);
-      console.log(`Processed data saved to DB`);
+      /*console.log(`Processed data saved to DB`);*/
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
     }
@@ -342,18 +342,18 @@ export class SlotService {
             increaseFreq,
           );
         }
-        console.log(
+        /*console.log(
           `${plane.callsign} - New CTOT ${newTakeOffTime} due to ${airspaceToFix.airspaceName} re-calculating...`,
-        );
+        );*/
         if (
           this.helperService.getTimeDifferenceInMinutes(
             previousTakeOffTime,
             newTakeOffTime,
           ) > 120
         ) {
-          console.log(
+          /*console.log(
             `${plane.callsign} - CTOT is more than 2h, stopping re-calculation.`,
-          );
+          );*/
           isOverloaded = false;
         }
       } else {
@@ -458,9 +458,9 @@ export class SlotService {
         );
         calcPlane.ctot = possibleCTOTdueArrival;
         calcPlane.mostPenalizingAirspace = calcPlane.arrival;
-        console.log(
+        /*console.log(
           `${calcPlane.callsign} new CTOT ${calcPlane.ctot} due to arrival airport (${calcPlane.arrival})`,
-        );
+        );*/
       }
     } else if (delayTime > 0) {
       //Recalculate airspaces and make diffDueToArrival a CTOT valid
@@ -471,9 +471,9 @@ export class SlotService {
       );
       calcPlane.ctot = possibleCTOTdueArrival;
       calcPlane.mostPenalizingAirspace = calcPlane.arrival;
-      console.log(
+      /*console.log(
         `${calcPlane.callsign} new CTOT due to arrival airport (${calcPlane.arrival}) - ${calcPlane.ctot}`,
-      );
+      );*/
     }
     return calcPlane;
   }
@@ -555,7 +555,7 @@ export class SlotService {
 
     try {
       await this.delayedPlaneService.saveDelayedPlane(planes);
-      console.log(`Calculation data saved to DB`);
+      /*console.log(`Calculation data saved to DB`);*/
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
     }
@@ -576,9 +576,9 @@ export class SlotService {
         */
     if (calcPlane.ctot != '' && plane.ctot != '') {
       if (plane.ctot == calcPlane.ctot) {
-        console.log(
+        /*console.log(
           `${plane.callsign} - Validated same CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
-        );
+        );*/
         return calcPlane;
       } else if (
         // eslint-disable-next-line prettier/prettier
@@ -593,20 +593,20 @@ export class SlotService {
             ),
           )
         ) {
-          console.log(
+          /*console.log(
             `${plane.callsign} - Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
-          );
+          );*/
           return calcPlane;
         } else {
-          console.log(
+          /*console.log(
             `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
-          );
+          );*/
           return plane;
         }
       } else {
-        console.log(
+        /*console.log(
           `${plane.callsign} - Not Validate CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: New CTOT [${calcPlane.ctot}] > Previous CTOT [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
-        );
+        );*/
         return plane;
       }
     } else if (calcPlane.ctot != '') {
@@ -622,14 +622,14 @@ export class SlotService {
           ),
         )
       ) {
-        console.log(
+        /*console.log(
           `${plane.callsign} - Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
-        );
+        );*/
         return calcPlane;
       } else {
-        console.log(
+        /*console.log(
           `${plane.callsign} - Not Validated CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Reason: (New CTOT [${calcPlane.ctot}] - Taxi time [${calcPlane.taxi}]) is earlier than now+5, using CTOT [[${plane.ctot}-${plane.mostPenalizingAirspace}]])`,
-        );
+        );*/
         return plane;
       }
     } else if (calcPlane.ctot == '' && plane.ctot != '' && trigger == 2) {
@@ -655,14 +655,14 @@ export class SlotService {
           ),
         )
       ) {
-        console.log(
+        /*console.log(
           `${plane.callsign} - Validated to remove CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
-        );
+        );*/
         return calcPlane;
       } else {
-        console.log(
+        /*console.log(
           `${plane.callsign} - Not Validated to remove CTOT [${calcPlane.ctot}-${calcPlane.mostPenalizingAirspace}] (Previous CTOT -> [${plane.ctot}-${plane.mostPenalizingAirspace}])`,
-        );
+        );*/
         return plane;
       }
     }

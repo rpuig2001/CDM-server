@@ -9,11 +9,11 @@ export class PlaneService {
     const planes = await this.getPilots();
     for (const plane of planes) {
       if (plane.callsign == callsign) {
-        console.log(`Plane ${callsign} is linked with CID ${plane.id}`);
+        /*console.log(`Plane ${callsign} is linked with CID ${plane.id}`);*/
         return plane.id;
       }
     }
-    console.log(`Plane ${callsign} not found`);
+    /*console.log(`Plane ${callsign} not found`);*/
     return null;
   }
 

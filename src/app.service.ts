@@ -11,7 +11,7 @@ export class AppService {
   @Cron('*/5 * * * *')
   async handleCronProcess() {
     try {
-      console.log(`Request sent to start calculation`);
+      /*console.log(`Request sent to start calculation`);*/
       await axios.post(
         'https://cdm-server-production.up.railway.app/slotService/process',
       );
