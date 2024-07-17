@@ -213,7 +213,7 @@ export class SlotService {
 
     try {
       await this.delayedPlaneService.updatePlanes(delayedPlanes);
-      /*console.log(`Processed data saved to DB`);*/
+      console.log(`Processed data saved to DB`);
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
     }
@@ -555,7 +555,7 @@ export class SlotService {
 
     try {
       await this.delayedPlaneService.saveDelayedPlane(planes);
-      /*console.log(`Calculation data saved to DB`);*/
+      console.log(`Calculation data saved to DB`);
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
     }
