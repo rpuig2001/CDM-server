@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { CreateAirportDto } from './dto/create-airport.dto';
 import { Airport } from './schemas/airport.schema';
-import { Atc } from 'src/plane/interface/atc.interface';
+import { Atc } from '../plane/interface/atc.interface';
 import axios from 'axios';
 
 @Injectable()
@@ -63,7 +63,7 @@ export class AirportService {
         }
       }
       if (!found) {
-        console.log(`Removing master airpot ${master.icao}`);
+        console.log(`[AUTO] Removing master airpot ${master.icao}`);
         this.removeByPosition(master.position);
       }
     }
@@ -92,7 +92,7 @@ export class AirportService {
       position: position,
     };
     await this.create(airportDto);
-    console.log('Adding airport', airport);
+    console.log('Adding master airport', airport);
     return true;
   }
 
@@ -103,7 +103,7 @@ export class AirportService {
     const airports = await this.findAll();
     for (const apt of airports) {
       if (apt.icao == airport && apt.position == position) {
-        console.log('Removing airport:', apt.icao);
+        console.log('Removing master airpot:', apt.icao);
         await this.remove(apt._id);
         return true;
       }
