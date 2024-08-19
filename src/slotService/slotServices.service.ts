@@ -502,32 +502,7 @@ export class SlotService {
 
       //Check if auto-set cdmSTS to I
       if (planes[i].cdmSts != 'I' || planes[i].atot == '') {
-        if (planes[i].ctot == '') {
-          if (
-            this.helperService.isTime1GreaterThanTime2(
-              this.helperService.addMinutesToTime(
-                planes[i].eobt,
-                planes[i].taxi,
-              ),
-              this.helperService.addMinutesToTime(
-                this.helperService.getCurrentUTCTime(),
-                10,
-              ),
-            )
-          ) {
-            planes[i].cdmSts = 'I';
-          }
-        } else if (
-          this.helperService.isTime1GreaterThanTime2(
-            planes[i].ctot,
-            this.helperService.addMinutesToTime(
-              this.helperService.getCurrentUTCTime(),
-              10,
-            ),
-          )
-        ) {
-          planes[i].cdmSts = 'I';
-        }
+        planes[i] = await this.autoSetInvalidCdmSts(planes[i]);
       }
 
       if (planes[i].atot != '') {
@@ -697,6 +672,39 @@ export class SlotService {
         return plane;
       }
     }
+    return plane;
+  }
+
+  async autoSetInvalidCdmSts(
+    plane: DelayedPlane,
+  ): Promise<DelayedPlane> {
+    if (plane.ctot == '') {
+      if (
+        this.helperService.isTime1GreaterThanTime2(
+          this.helperService.addMinutesToTime(
+            plane.eobt,
+            plane.taxi,
+          ),
+          this.helperService.addMinutesToTime(
+            this.helperService.getCurrentUTCTime(),
+            10,
+          ),
+        )
+      ) {
+        plane.cdmSts = 'I';
+      }
+    } else if (
+      this.helperService.isTime1GreaterThanTime2(
+        plane.ctot,
+        this.helperService.addMinutesToTime(
+          this.helperService.getCurrentUTCTime(),
+          10,
+        ),
+      )
+    ) {
+      plane.cdmSts = 'I';
+    }
+
     return plane;
   }
 
