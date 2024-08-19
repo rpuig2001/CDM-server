@@ -681,25 +681,16 @@ export class SlotService {
     if (plane.ctot == '') {
       if (
         this.helperService.isTime1GreaterThanTime2(
-          this.helperService.addMinutesToTime(
-            plane.eobt,
-            plane.taxi,
-          ),
-          this.helperService.addMinutesToTime(
-            this.helperService.getCurrentUTCTime(),
-            10,
-          ),
+          this.helperService.getCurrentUTCTime(),
+          this.helperService.addMinutesToTime(this.helperService.addMinutesToTime(plane.eobt,plane.taxi), 10)
         )
       ) {
         plane.cdmSts = 'I';
       }
     } else if (
       this.helperService.isTime1GreaterThanTime2(
-        plane.ctot,
-        this.helperService.addMinutesToTime(
-          this.helperService.getCurrentUTCTime(),
-          10,
-        ),
+        this.helperService.getCurrentUTCTime(),
+        this.helperService.addMinutesToTime(plane.ctot, 10)
       )
     ) {
       plane.cdmSts = 'I';
