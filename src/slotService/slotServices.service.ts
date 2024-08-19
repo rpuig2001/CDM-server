@@ -499,7 +499,6 @@ export class SlotService {
       //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
-
       //Check if auto-set cdmSTS to I
       if (planes[i].cdmSts != 'I' && planes[i].atot == '') {
         planes[i] = await this.autoSetInvalidCdmSts(planes[i]);
@@ -675,14 +674,15 @@ export class SlotService {
     return plane;
   }
 
-  async autoSetInvalidCdmSts(
-    plane: DelayedPlane,
-  ): Promise<DelayedPlane> {
+  async autoSetInvalidCdmSts(plane: DelayedPlane): Promise<DelayedPlane> {
     if (plane.ctot == '') {
       if (
         this.helperService.isTime1GreaterThanTime2(
           this.helperService.getCurrentUTCTime(),
-          this.helperService.addMinutesToTime(this.helperService.addMinutesToTime(plane.eobt,plane.taxi), 10)
+          this.helperService.addMinutesToTime(
+            this.helperService.addMinutesToTime(plane.eobt, plane.taxi),
+            5,
+          ),
         )
       ) {
         plane.cdmSts = 'I';
@@ -690,7 +690,7 @@ export class SlotService {
     } else if (
       this.helperService.isTime1GreaterThanTime2(
         this.helperService.getCurrentUTCTime(),
-        this.helperService.addMinutesToTime(plane.ctot, 10)
+        this.helperService.addMinutesToTime(plane.ctot, 5),
       )
     ) {
       plane.cdmSts = 'I';
