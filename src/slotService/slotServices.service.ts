@@ -501,7 +501,7 @@ export class SlotService {
 
 
       //Check if auto-set cdmSTS to I
-      if (planes[i].cdmSts != 'I' || planes[i].atot == '') {
+      if (planes[i].cdmSts != 'I' && planes[i].atot == '') {
         planes[i] = await this.autoSetInvalidCdmSts(planes[i]);
       }
 
