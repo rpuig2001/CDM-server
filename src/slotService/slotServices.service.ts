@@ -499,6 +499,37 @@ export class SlotService {
       //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
+
+      //Check if auto-set cdmSTS to I
+      if (planes[i].cdmSts != 'I' || planes[i].atot == '') {
+        if (planes[i].ctot == '') {
+          if (
+            this.helperService.isTime1GreaterThanTime2(
+              this.helperService.addMinutesToTime(
+                planes[i].eobt,
+                planes[i].taxi,
+              ),
+              this.helperService.addMinutesToTime(
+                this.helperService.getCurrentUTCTime(),
+                10,
+              ),
+            )
+          ) {
+            planes[i].cdmSts = 'I';
+          }
+        } else if (
+          this.helperService.isTime1GreaterThanTime2(
+            planes[i].ctot,
+            this.helperService.addMinutesToTime(
+              this.helperService.getCurrentUTCTime(),
+              10,
+            ),
+          )
+        ) {
+          planes[i].cdmSts = 'I';
+        }
+      }
+
       if (planes[i].atot != '') {
         //console.log(`Skipping ${plane.callsign} is already airborne`);
       } else if (planes[i].cdmSts == 'I') {
