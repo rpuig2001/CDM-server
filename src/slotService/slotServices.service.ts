@@ -41,7 +41,6 @@ export class SlotService {
     let existingPlane = null;
     let myairspaces: AirspaceComplete[] = null;
     let myAtot = '';
-    let recalculateAirspaces = false;
     let previousTTOT = '';
     let actualTTOT = '';
 
@@ -98,38 +97,23 @@ export class SlotService {
           existingPlane.cdmSts = '';
           existingPlane.modify = true;
 
-          recalculateAirspaces = false;
-          /* Recalculate Airspaces only if CTOT exists and diff between timeNow and CTOT > 15 */
+          /* Recalculate Airspaces Start */
+          previousTTOT = this.helperService.addMinutesToTime(
+            existingPlane.eobt,
+            existingPlane.taxi,
+          );
+
           if (existingPlane.ctot != '') {
-            if (
-              this.helperService.getTimeDifferenceInMinutes(
-                this.helperService.getCurrentUTCTime(),
-                existingPlane.ctot,
-              ) > 15
-            ) {
-              recalculateAirspaces = true;
-            }
-          } else {
-            recalculateAirspaces = true;
+            previousTTOT = existingPlane.ctot;
           }
 
-          if (recalculateAirspaces) {
-            previousTTOT = this.helperService.addMinutesToTime(
-              existingPlane.eobt,
-              existingPlane.taxi,
-            );
-
-            if (existingPlane.ctot != '') {
-              previousTTOT = existingPlane.ctot;
-            }
-
-            actualTTOT = this.helperService.getCurrentUTCTime();
-            existingPlane.airspaces = await this.moveTimesOfAirspace(
-              existingPlane.airspaces,
-              actualTTOT,
-              previousTTOT,
-            );
-          }
+          actualTTOT = this.helperService.getCurrentUTCTime();
+          existingPlane.airspaces = await this.moveTimesOfAirspace(
+            existingPlane.airspaces,
+            actualTTOT,
+            previousTTOT,
+          );
+          /* Recalculate Airspaces End */
 
           delayedPlanes.push(existingPlane);
           continue;
