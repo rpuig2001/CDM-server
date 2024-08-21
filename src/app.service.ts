@@ -23,7 +23,7 @@ export class AppService {
     }
   }
 
-  @Cron('2-59/5 * * * *')
+  @Cron('3,8,13,18,23,28,33,38,43,48,53,58 * * * *')
   async handleCronProcessing() {
     try {
       /*console.log(`Request sent to start calculation`);*/
