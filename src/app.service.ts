@@ -35,7 +35,7 @@ export class AppService {
     }
   }
 
-  @Cron('/1 * * * *')
+  @Cron('*/1 * * * *')
   async handleCronProcessForMasterAirports() {
     try {
       await axios.post(
