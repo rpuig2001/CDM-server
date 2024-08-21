@@ -8,7 +8,7 @@ export class AppService {
     return 'CDM API';
   }
 
-  @Cron('*/5 * * * *')
+  @Cron('*/2 * * * *')
   async handleCronProcess() {
     try {
       /*console.log(`Request sent to start calculation`);*/
