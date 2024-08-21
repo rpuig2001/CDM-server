@@ -8,8 +8,8 @@ export class AppService {
     return 'CDM API';
   }
 
-  @Cron('*/2 * * * *')
-  async handleCronProcess() {
+  @Cron('*/5 * * * *')
+  async handleCronProcessAndCalculate() {
     try {
       /*console.log(`Request sent to start calculation`);*/
       await axios.post(
@@ -23,7 +23,19 @@ export class AppService {
     }
   }
 
-  @Cron('*/1 * * * *')
+  @Cron('2-59/5 * * * *')
+  async handleCronProcessing() {
+    try {
+      /*console.log(`Request sent to start calculation`);*/
+      await axios.post(
+        'https://cdm-server-production.up.railway.app/slotService/process',
+      );
+    } catch (error) {
+      console.error(`HTTP request failed: ${error.message}`);
+    }
+  }
+
+  @Cron('/1 * * * *')
   async handleCronProcessForMasterAirports() {
     try {
       await axios.post(
