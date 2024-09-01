@@ -22,7 +22,7 @@ export class AppService {
       console.error(`HTTP request failed: ${error.message}`);
     }
   }
-
+  /*
   @Cron('3,8,13,18,23,28,33,38,43,48,53,58 * * * *')
   async handleCronProcessing() {
     try {
@@ -30,7 +30,6 @@ export class AppService {
         'https://cdm-server-production.up.railway.app/airport/mastersOnline',
       );
       if (response.data == true) {
-        /*console.log(`Request sent to start calculation`);*/
         await axios.post(
           'https://cdm-server-production.up.railway.app/slotService/process',
         );
@@ -39,6 +38,7 @@ export class AppService {
       console.error(`HTTP request failed: ${error.message}`);
     }
   }
+  */
 
   @Cron('*/1 * * * *')
   async handleCronProcessForMasterAirports() {
