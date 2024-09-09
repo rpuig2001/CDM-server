@@ -274,6 +274,7 @@ export class DelayedPlaneService {
         dbPlanesMap.delete(plane.callsign);
       }
     }
+    dbPlanesMap.clear();
   }
 
   async updatePlanes(planes: DelayedPlane[]) {
@@ -316,6 +317,7 @@ export class DelayedPlaneService {
     } catch (error: any) {
       console.error(`Error removing unused planees from DB`);
     }
+    dbPlanesMap.clear();
   }
 
   async resetAirspacesToEobt(plane: DelayedPlane) {
