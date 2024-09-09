@@ -263,13 +263,14 @@ export class DelayedPlaneService {
 
   async saveDelayedPlane(planes: DelayedPlane[]): Promise<void> {
     let allPlanes = await this.slotServiceModel.find();
+    let dbPlane = null;
     let dbPlanesMap = new Map(
       allPlanes.map((plane) => [plane.callsign, plane]),
     );
 
     // Check if a plane with the same callsign exists in the database
     for (const plane of planes) {
-      const dbPlane = dbPlanesMap.get(plane.callsign);
+      dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
         if (
           JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane) &&
@@ -292,12 +293,13 @@ export class DelayedPlaneService {
 
   async updatePlanes(planes: DelayedPlane[]) {
     let allPlanes = await this.slotServiceModel.find();
+    let dbPlane = null;
     let dbPlanesMap = new Map(
       allPlanes.map((plane) => [plane.callsign, plane]),
     );
 
     for (const plane of planes) {
-      const dbPlane = dbPlanesMap.get(plane.callsign);
+      dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
         if (plane.modify && plane.tsat == dbPlane.tsat) {
           //console.log(`Updating aircraft ${dbPlane.callsign}`);
@@ -321,9 +323,9 @@ export class DelayedPlaneService {
         }
       }
     }
-
+    let deletePromises = null;
     try {
-      const deletePromises = Array.from(dbPlanesMap.values()).map((dbPlane) =>
+      deletePromises = Array.from(dbPlanesMap.values()).map((dbPlane) =>
         this.slotServiceModel.deleteMany({ callsign: dbPlane.callsign }),
       );
       await Promise.all(deletePromises);
@@ -332,6 +334,7 @@ export class DelayedPlaneService {
     }
     dbPlanesMap = null;
     allPlanes = null;
+    deletePromises = null;
   }
 
   async resetAirspacesToEobt(plane: DelayedPlane) {
