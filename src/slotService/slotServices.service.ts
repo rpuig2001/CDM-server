@@ -21,7 +21,7 @@ export class SlotService {
     private readonly restrictionService: RestrictionService,
   ) {}
 
-  async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
+  async processPlanes(planes: any[]): Promise<boolean> {
     console.log(`Processing ${planes.length} planes`);
     const delayedPlanes: DelayedPlane[] = [];
     const [waypoints, airways, airspaces, existingPlanes, restrictions] =
@@ -46,6 +46,7 @@ export class SlotService {
 
     let counter = 1;
     for (const plane of planes) {
+      await new Promise((resolve) => setImmediate(resolve));
       const { flight_plan } = plane;
       //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
@@ -207,8 +208,9 @@ export class SlotService {
     airspaces.length = 0;
     existingPlanes.length = 0;
     restrictions.length = 0;
+    delayedPlanes.length = 0;
 
-    return delayedPlanes;
+    return true;
   }
 
   async getAirspacesWorkload(callsign: string): Promise<AirspaceAll[]> {
@@ -255,6 +257,7 @@ export class SlotService {
     let exitTime2 = '';
 
     while (isOverloaded) {
+      await new Promise((resolve) => setImmediate(resolve));
       counterArray = [];
 
       for (const myairspace of myairspaces) {
@@ -478,7 +481,7 @@ export class SlotService {
     return calcPlane;
   }
 
-  async delayPlanes(planes: DelayedPlane[]): Promise<DelayedPlane[]> {
+  async delayPlanes(planes: DelayedPlane[]): Promise<boolean> {
     const restrictions = await this.restrictionService.getRestrictions();
     const delayedPlanes: DelayedPlane[] = [];
     const cadAirports: cadAirport[] =
@@ -495,6 +498,7 @@ export class SlotService {
 
     let counter = 1;
     for (let i = 0; i < planes.length; i++) {
+      await new Promise((resolve) => setImmediate(resolve));
       //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
@@ -567,8 +571,9 @@ export class SlotService {
     restrictions.length = 0;
     cadAirports.length = 0;
     planes.length = 0;
+    delayedPlanes.length = 0;
 
-    return delayedPlanes;
+    return true;
   }
 
   async makeCTOTvalid(

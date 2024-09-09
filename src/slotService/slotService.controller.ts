@@ -72,7 +72,7 @@ export class SlotServiceController {
   }
 
   @Post('process')
-  async getProcessedPlanes(): Promise<any[]> {
+  async getProcessedPlanes(): Promise<boolean> {
     try {
       const response = await this.httpService
         .get('https://data.vatsim.net/v3/vatsim-data.json')
@@ -93,16 +93,16 @@ export class SlotServiceController {
         return delayedPlanes;
       } else {
         console.error('Invalid response from source');
-        return [];
+        return false;
       }
     } catch (error) {
       console.error('Error fetching delayed planes:', error);
-      return [];
+      return false;
     }
   }
 
   @Post('calculate')
-  async getDelayedPlanes(): Promise<any[]> {
+  async getDelayedPlanes(): Promise<boolean> {
     const delayedPlanes = await this.slotService.delayPlanes(
       await this.delayedPlaneService.getAllDelayedPlanes(),
     );
