@@ -6,14 +6,16 @@ import axios from 'axios';
 @Injectable()
 export class PlaneService {
   async getCid(callsign: string): Promise<number> {
-    const planes = await this.getPilots();
+    let planes = await this.getPilots();
     for (const plane of planes) {
       if (plane.callsign == callsign) {
         /*console.log(`Plane ${callsign} is linked with CID ${plane.id}`);*/
+        planes = null;
         return plane.id;
       }
     }
     /*console.log(`Plane ${callsign} not found`);*/
+    planes = null;
     return null;
   }
 

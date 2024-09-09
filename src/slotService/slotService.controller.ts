@@ -73,8 +73,10 @@ export class SlotServiceController {
 
   @Post('process')
   async getProcessedPlanes(): Promise<boolean> {
+    let planes = null;
+    let response = null;
     try {
-      const response = await this.httpService
+      response = await this.httpService
         .get('https://data.vatsim.net/v3/vatsim-data.json')
         .pipe(
           catchError((error) => {
@@ -85,18 +87,24 @@ export class SlotServiceController {
         .toPromise();
 
       if (response && response.data && response.data.pilots) {
-        const planes = response.data.pilots;
+        planes = response.data.pilots;
         const [delayedPlanes] = await Promise.all([
           await this.slotService.processPlanes(planes),
         ]);
         //const delayedPlanes = await this.slotService.processPlanes(planes);
+        planes = null;
+        response = null;
         return delayedPlanes;
       } else {
         console.error('Invalid response from source');
+        planes = null;
+        response = null;
         return false;
       }
     } catch (error) {
       console.error('Error fetching delayed planes:', error);
+      planes = null;
+      response = null;
       return false;
     }
   }
