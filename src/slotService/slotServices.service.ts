@@ -567,7 +567,6 @@ export class SlotService {
     restrictions.length = 0;
     cadAirports.length = 0;
     planes.length = 0;
-    planesCopy.length = 0;
 
     return delayedPlanes;
   }
