@@ -24,7 +24,7 @@ export class SlotService {
   async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
     console.log(`Processing ${planes.length} planes`);
     const delayedPlanes: DelayedPlane[] = [];
-    let [waypoints, airways, airspaces, existingPlanes, restrictions] =
+    const [waypoints, airways, airspaces, existingPlanes, restrictions] =
       await Promise.all([
         await this.routeService.getWaypoints(),
         await this.routeService.getAirways(),
@@ -46,7 +46,6 @@ export class SlotService {
 
     let counter = 1;
     for (const plane of planes) {
-      await new Promise((resolve) => setImmediate(resolve));
       const { flight_plan } = plane;
       //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
@@ -202,12 +201,12 @@ export class SlotService {
       console.log(`ERROR saving to DB`, error);
     }
 
-    planes = null;
-    waypoints = null;
-    airways = null;
-    airspaces = null;
-    existingPlanes = null;
-    restrictions = null;
+    planes.length = 0;
+    waypoints.length = 0;
+    airways.length = 0;
+    airspaces.length = 0;
+    existingPlanes.length = 0;
+    restrictions.length = 0;
 
     return delayedPlanes;
   }
@@ -226,6 +225,7 @@ export class SlotService {
         return airspaceAll;
       }
     }
+    planes.length = 0;
     return airspaceAll;
   }
 
@@ -255,7 +255,6 @@ export class SlotService {
     let exitTime2 = '';
 
     while (isOverloaded) {
-      await new Promise((resolve) => setImmediate(resolve));
       counterArray = [];
 
       for (const myairspace of myairspaces) {
@@ -364,7 +363,9 @@ export class SlotService {
       }
     }
 
-    planes = null;
+    planes.length = 0;
+    myairspaces.length = 0;
+    counterArray.length = 0;
 
     return plane;
   }
@@ -372,9 +373,11 @@ export class SlotService {
   async getAirportRate(airport: string, airports: cadAirport[]) {
     for (const apt of airports) {
       if (apt.icao == airport) {
+        airports.length = 0;
         return apt.rate;
       }
     }
+    airports.length = 0;
     return 30;
   }
 
@@ -469,6 +472,9 @@ export class SlotService {
         `${calcPlane.callsign} new CTOT due to arrival airport (${calcPlane.arrival}) - ${calcPlane.ctot}`,
       );*/
     }
+    planes.length = 0;
+    cadAirports.length = 0;
+
     return calcPlane;
   }
 
@@ -489,7 +495,6 @@ export class SlotService {
 
     let counter = 1;
     for (let i = 0; i < planes.length; i++) {
-      await new Promise((resolve) => setImmediate(resolve));
       //console.log(`${plane.callsign} - (${counter}/${planes.length})`);
       counter = counter + 1;
 
@@ -558,6 +563,11 @@ export class SlotService {
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
     }
+
+    restrictions.length = 0;
+    cadAirports.length = 0;
+    planes.length = 0;
+    planesCopy.length = 0;
 
     return delayedPlanes;
   }
