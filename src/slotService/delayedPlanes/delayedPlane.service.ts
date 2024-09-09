@@ -78,8 +78,8 @@ export class DelayedPlaneService {
             );
 
           //Get Planes
-          const planes = await this.getAllDelayedPlanes();
-          const restrictions = await this.restrictionService.getRestrictions();
+          let planes = await this.getAllDelayedPlanes();
+          let restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
           planeCopy = JSON.parse(JSON.stringify(mainPlane));
@@ -117,6 +117,9 @@ export class DelayedPlaneService {
             2,
             true,
           );
+
+          planes = null;
+          restrictions = null;
         } else if (mainPlane && tsat.length === 0) {
           console.log(`${mainPlane.callsign} - REQ - Removing TSAT`);
           if (mainPlane.ctot != '') {
@@ -150,8 +153,8 @@ export class DelayedPlaneService {
             );
 
           //Get Planes
-          const planes = await this.getAllDelayedPlanes();
-          const restrictions = await this.restrictionService.getRestrictions();
+          let planes = await this.getAllDelayedPlanes();
+          let restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
           planeCopy = JSON.parse(JSON.stringify(mainPlane));
@@ -190,6 +193,9 @@ export class DelayedPlaneService {
             2,
             true,
           );
+
+          planes = null;
+          restrictions = null;
         }
       }
       //Update DB Plane
@@ -200,10 +206,16 @@ export class DelayedPlaneService {
         })
         .exec();
 
+      planeCopy = null;
+      mainPlane = null;
+      planesCopy = null;
+
       return plane;
     }
 
+    planeCopy = null;
     mainPlane = null;
+    planesCopy = null;
 
     return null;
   }
@@ -250,8 +262,8 @@ export class DelayedPlaneService {
   }
 
   async saveDelayedPlane(planes: DelayedPlane[]): Promise<void> {
-    const allPlanes = await this.slotServiceModel.find();
-    const dbPlanesMap = new Map(
+    let allPlanes = await this.slotServiceModel.find();
+    let dbPlanesMap = new Map(
       allPlanes.map((plane) => [plane.callsign, plane]),
     );
 
@@ -274,12 +286,13 @@ export class DelayedPlaneService {
         dbPlanesMap.delete(plane.callsign);
       }
     }
-    dbPlanesMap.clear();
+    dbPlanesMap = null;
+    allPlanes = null;
   }
 
   async updatePlanes(planes: DelayedPlane[]) {
-    const allPlanes = await this.slotServiceModel.find();
-    const dbPlanesMap = new Map(
+    let allPlanes = await this.slotServiceModel.find();
+    let dbPlanesMap = new Map(
       allPlanes.map((plane) => [plane.callsign, plane]),
     );
 
@@ -317,7 +330,8 @@ export class DelayedPlaneService {
     } catch (error: any) {
       console.error(`Error removing unused planees from DB`);
     }
-    dbPlanesMap.clear();
+    dbPlanesMap = null;
+    allPlanes = null;
   }
 
   async resetAirspacesToEobt(plane: DelayedPlane) {
