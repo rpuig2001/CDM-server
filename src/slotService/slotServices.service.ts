@@ -23,8 +23,8 @@ export class SlotService {
 
   async processPlanes(planes: any[]): Promise<boolean> {
     console.log(`Processing ${planes.length} planes`);
-    const delayedPlanes: DelayedPlane[] = [];
-    const [waypoints, airways, airspaces, existingPlanes, restrictions] =
+    let delayedPlanes: DelayedPlane[] = [];
+    let [waypoints, airways, airspaces, existingPlanes, restrictions] =
       await Promise.all([
         await this.routeService.getWaypoints(),
         await this.routeService.getAirways(),
@@ -202,19 +202,19 @@ export class SlotService {
       console.log(`ERROR saving to DB`, error);
     }
 
-    planes.length = 0;
-    waypoints.length = 0;
-    airways.length = 0;
-    airspaces.length = 0;
-    existingPlanes.length = 0;
-    restrictions.length = 0;
-    delayedPlanes.length = 0;
+    planes = null;
+    waypoints = null;
+    airways = null;
+    airspaces = null;
+    existingPlanes = null;
+    restrictions = null;
+    delayedPlanes = null;
 
     return true;
   }
 
   async getAirspacesWorkload(callsign: string): Promise<AirspaceAll[]> {
-    const planes = await this.delayedPlaneService.getAllDelayedPlanes();
+    let planes = await this.delayedPlaneService.getAllDelayedPlanes();
     const airspaceAll: AirspaceAll[] = [];
 
     for (const foundPlane of planes) {
@@ -227,7 +227,7 @@ export class SlotService {
         return airspaceAll;
       }
     }
-    planes.length = 0;
+    planes = null;
     return airspaceAll;
   }
 
@@ -242,7 +242,7 @@ export class SlotService {
     const previousTakeOffTime = newTakeOffTime;
 
     let isOverloaded = true;
-    const myairspaces: AirspaceComplete[] = plane.airspaces;
+    let myairspaces: AirspaceComplete[] = plane.airspaces;
     const airspaceToFix: AirspaceCounter = {
       airspaceName: '',
       airspaceCapacity: null,
@@ -366,9 +366,9 @@ export class SlotService {
       }
     }
 
-    planes.length = 0;
-    myairspaces.length = 0;
-    counterArray.length = 0;
+    planes = null;
+    myairspaces = null;
+    counterArray = null;
 
     return plane;
   }
@@ -376,11 +376,11 @@ export class SlotService {
   async getAirportRate(airport: string, airports: cadAirport[]) {
     for (const apt of airports) {
       if (apt.icao == airport) {
-        airports.length = 0;
+        airports = null;
         return apt.rate;
       }
     }
-    airports.length = 0;
+    airports = null;
     return 30;
   }
 
@@ -475,16 +475,15 @@ export class SlotService {
         `${calcPlane.callsign} new CTOT due to arrival airport (${calcPlane.arrival}) - ${calcPlane.ctot}`,
       );*/
     }
-    planes.length = 0;
-    cadAirports.length = 0;
+    planes = null;
+    cadAirports = null;
 
     return calcPlane;
   }
 
   async delayPlanes(planes: DelayedPlane[]): Promise<boolean> {
-    const restrictions = await this.restrictionService.getRestrictions();
-    const delayedPlanes: DelayedPlane[] = [];
-    const cadAirports: cadAirport[] =
+    let restrictions = await this.restrictionService.getRestrictions();
+    let cadAirports: cadAirport[] =
       await this.cadAirportService.getAirports(restrictions);
 
     console.log(`Calculating ${planes.length} planes`);
@@ -568,10 +567,9 @@ export class SlotService {
       console.log(`ERROR saving to DB`, error);
     }
 
-    restrictions.length = 0;
-    cadAirports.length = 0;
-    planes.length = 0;
-    delayedPlanes.length = 0;
+    restrictions = null;
+    cadAirports = null;
+    planes = null;
 
     return true;
   }
