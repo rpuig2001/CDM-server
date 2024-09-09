@@ -24,7 +24,7 @@ export class SlotService {
   async processPlanes(planes: any[]): Promise<DelayedPlane[]> {
     console.log(`Processing ${planes.length} planes`);
     const delayedPlanes: DelayedPlane[] = [];
-    const [waypoints, airways, airspaces, existingPlanes, restrictions] =
+    let [waypoints, airways, airspaces, existingPlanes, restrictions] =
       await Promise.all([
         await this.routeService.getWaypoints(),
         await this.routeService.getAirways(),
@@ -218,6 +218,13 @@ export class SlotService {
       console.log(`ERROR saving to DB`, error);
     }
 
+    planes = null;
+    waypoints = null;
+    airways = null;
+    airspaces = null;
+    existingPlanes = null;
+    restrictions = null;
+
     return delayedPlanes;
   }
 
@@ -372,6 +379,9 @@ export class SlotService {
         }
       }
     }
+
+    planes = null;
+
     return plane;
   }
 
