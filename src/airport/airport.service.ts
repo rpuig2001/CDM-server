@@ -49,6 +49,14 @@ export class AirportService {
     }
   }
 
+  async mastersOnline(): Promise<boolean> {
+    const masters = await this.findAll();
+    if (masters.length > 0) {
+      return true;
+    }
+    return false;
+  }
+
   async removeUnused() {
     const masters = await this.findAll();
     let atcs: Atc[] = [];

@@ -62,7 +62,7 @@ export class SlotServiceController {
   }
 
   @Get('airspaces')
-  async getAirspacesWorkload(@Query('airspace') airspace: string) {
+  async getAirspacesWorkload() {
     return await this.airspaceService.getHourlyPeaks();
   }
 

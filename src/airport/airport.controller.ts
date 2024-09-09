@@ -59,4 +59,9 @@ export class AirportController {
   async setQueryToRemoveUnusedMasters() {
     await this.airportService.removeUnused();
   }
+
+  @Get('mastersOnline')
+  async areThereMastersOnline() {
+    return this.airportService.mastersOnline();
+  }
 }
