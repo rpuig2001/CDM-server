@@ -33,7 +33,7 @@ export class SlotService {
         await this.restrictionService.getRestrictions(),
       ]);
 
-    if (waypoints.length == 0 || airways.length == 0 || airspaces.length == 0){
+    if (waypoints.length == 0 || airways.length == 0){
       return false;
     }
 
