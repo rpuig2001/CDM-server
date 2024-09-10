@@ -297,8 +297,9 @@ export class RouteService {
   }
 
   async fetchGeoJSONFromUrl(url: string): Promise<any> {
+    let response = null;
     try {
-      const response = await axios.get(url);
+      response = await axios.get(url);
       return response.data;
     } catch (error) {
       response = null;
@@ -308,8 +309,9 @@ export class RouteService {
   }
 
   async readFileFromUrl(url: string): Promise<string> {
+    let response = null;
     try {
-      const response = await axios.get(url);
+      response = await axios.get(url);
       return response.data;
     } catch (error) {
       response = null;
