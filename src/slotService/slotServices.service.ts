@@ -569,11 +569,11 @@ export class SlotService {
       console.log(`Calculation data saved to DB`);
     } catch (error) {
       console.log(`ERROR saving to DB`, error);
+    } finally {
+      restrictions = null;
+      cadAirports = null;
+      planes = null;
     }
-
-    restrictions = null;
-    cadAirports = null;
-    planes = null;
 
     return true;
   }

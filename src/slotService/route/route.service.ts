@@ -133,11 +133,6 @@ export class RouteService {
 
   async getWaypoints(): Promise<Waypoint[]> {
     const waypoints: Waypoint[] = [];
-    let lines = null;
-    let data = null;
-    let name = null;
-    let lat = null;
-    let lon = null;
     //Get Waypoints
     let src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/Waypoints.txt',
@@ -145,21 +140,14 @@ export class RouteService {
     if (src == ""){
       return [];
     }
-    lines = src.split('\n');
-    lines.forEach((line) => {
-      data = line.split(',');
-      name = data[0];
-      lat = parseFloat(data[1]);
-      lon = parseFloat(data[2]);
+    const linesWaypoints = src.split('\n');
+    linesWaypoints.forEach((line) => {
+      const data = line.split(',');
+      const name = data[0];
+      const lat = parseFloat(data[1]);
+      const lon = parseFloat(data[2]);
       waypoints.push({ name, lat, lon });
     });
-
-    lines = null;
-    data = null;
-    name = null;
-    lat = null;
-    lon = null;
-    src = null;
 
     //Get navaids
     src = await this.readFileFromUrl(
@@ -168,21 +156,14 @@ export class RouteService {
     if (src == ""){
       return [];
     }
-    lines = src.split('\n');
-    lines.forEach((line) => {
-      data = line.split(',');
-      name = data[0];
-      lat = parseFloat(data[6]);
-      lon = parseFloat(data[7]);
+    const linesNavaids = src.split('\n');
+    linesNavaids.forEach((line) => {
+      const data = line.split(',');
+      const name = data[0];
+      const lat = parseFloat(data[6]);
+      const lon = parseFloat(data[7]);
       waypoints.push({ name, lat, lon });
     });
-
-    lines = null;
-    data = null;
-    name = null;
-    lat = null;
-    lon = null;
-    src = null;
 
     //Get airports
     src = await this.readFileFromUrl(
@@ -191,62 +172,43 @@ export class RouteService {
     if (src == ""){
       return [];
     }
-    lines = src.split('\n');
-    lines.forEach((line) => {
-      data = line.split(',');
+    const linesAirports = src.split('\n');
+    linesAirports.forEach((line) => {
+      const data = line.split(',');
       if (data[0] == 'A') {
-        name = data[1];
-        lat = parseFloat(data[3]);
-        lon = parseFloat(data[4]);
+        const name = data[1];
+        const lat = parseFloat(data[3]);
+        const lon = parseFloat(data[4]);
         waypoints.push({ name, lat, lon });
       }
     });
-
-    lines = null;
-    data = null;
-    name = null;
-    lat = null;
-    lon = null;
-    src = null
 
     return waypoints;
   }
 
   async getAirways(): Promise<Airway[]> {
     const routes: Airway[] = [];
-    let data = null;
-    let type = null;
-    let waypointsForCurrentAirway = null;
-    let name = null;
-    let lat = null;
-    let lon = null;
-    let index = null;
     //Get Routes
-    let src = await this.readFileFromUrl(
+    const src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/ATS.txt',
     );
     if (src == ""){
       return [];
     }
-    let waypointsForAirway: Waypoint[] = [];
-    let linesRoutes = src.split('\n');
+    const waypointsForAirway: Waypoint[] = [];
+    const linesRoutes = src.split('\n');
     let nameAirway = '';
     linesRoutes.forEach((line) => {
-      name = null;
-      lat = null;
-      lon = null;
-      index = null;
-      waypointsForCurrentAirway = null;
-      data = line.split(',');
-      type = data[0];
+      const data = line.split(',');
+      const type = data[0];
       if (type == 'A') {
-        index = routes.findIndex(
+        const index = routes.findIndex(
           (item) => item.nameAirway === nameAirway,
         );
 
         //
         if (index != -1) {
-          waypointsForCurrentAirway = [...waypointsForAirway];
+          const waypointsForCurrentAirway = [...waypointsForAirway];
           routes[index].waypointsForAirway = waypointsForCurrentAirway;
         } else {
           routes.push({
@@ -260,30 +222,18 @@ export class RouteService {
       if (type == 'S') {
         //Setting "from" only when starting to complete the list
         if (waypointsForAirway.length == 0) {
-          name = data[1];
-          lat = parseFloat(data[2]);
-          lon = parseFloat(data[3]);
+          const name = data[1];
+          const lat = parseFloat(data[2]);
+          const lon = parseFloat(data[3]);
           waypointsForAirway.push({ name, lat, lon });
         }
         //Setting "to"
-        name = data[4];
-        lat = parseFloat(data[5]);
-        lon = parseFloat(data[6]);
+        const name = data[4];
+        const lat = parseFloat(data[5]);
+        const lon = parseFloat(data[6]);
         waypointsForAirway.push({ name, lat, lon });
       }
     });
-
-    src = null;
-    data = null;
-    type = null;
-    waypointsForCurrentAirway = null;
-    name = null;
-    lat = null;
-    lon = null;
-    index = null;
-    waypointsForAirway = null;
-    linesRoutes = null;
-    nameAirway = null;
 
     return routes;
   }
