@@ -214,27 +214,39 @@ export class RouteService {
 
   async getAirways(): Promise<Airway[]> {
     const routes: Airway[] = [];
+    let data = null;
+    let type = null;
+    let waypointsForCurrentAirway = null;
+    let name = null;
+    let lat = null;
+    let lon = null;
+    let index = null;
     //Get Routes
-    const src = await this.readFileFromUrl(
+    let src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/ATS.txt',
     );
     if (src == ""){
       return [];
     }
-    const waypointsForAirway: Waypoint[] = [];
-    const linesRoutes = src.split('\n');
+    let waypointsForAirway: Waypoint[] = [];
+    let linesRoutes = src.split('\n');
     let nameAirway = '';
     linesRoutes.forEach((line) => {
-      const data = line.split(',');
-      const type = data[0];
+      name = null;
+      lat = null;
+      lon = null;
+      index = null;
+      waypointsForCurrentAirway = null;
+      data = line.split(',');
+      type = data[0];
       if (type == 'A') {
-        const index = routes.findIndex(
+        index = routes.findIndex(
           (item) => item.nameAirway === nameAirway,
         );
 
         //
         if (index != -1) {
-          const waypointsForCurrentAirway = [...waypointsForAirway];
+          waypointsForCurrentAirway = [...waypointsForAirway];
           routes[index].waypointsForAirway = waypointsForCurrentAirway;
         } else {
           routes.push({
@@ -248,18 +260,31 @@ export class RouteService {
       if (type == 'S') {
         //Setting "from" only when starting to complete the list
         if (waypointsForAirway.length == 0) {
-          const name = data[1];
-          const lat = parseFloat(data[2]);
-          const lon = parseFloat(data[3]);
+          name = data[1];
+          lat = parseFloat(data[2]);
+          lon = parseFloat(data[3]);
           waypointsForAirway.push({ name, lat, lon });
         }
         //Setting "to"
-        const name = data[4];
-        const lat = parseFloat(data[5]);
-        const lon = parseFloat(data[6]);
+        name = data[4];
+        lat = parseFloat(data[5]);
+        lon = parseFloat(data[6]);
         waypointsForAirway.push({ name, lat, lon });
       }
     });
+
+    src = null;
+    data = null;
+    type = null;
+    waypointsForCurrentAirway = null;
+    name = null;
+    lat = null;
+    lon = null;
+    index = null;
+    waypointsForAirway = null;
+    linesRoutes = null;
+    nameAirway = null;
+
     return routes;
   }
 
