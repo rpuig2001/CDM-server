@@ -33,6 +33,10 @@ export class SlotService {
         await this.restrictionService.getRestrictions(),
       ]);
 
+    if (waypoints.length == 0 || airways.length == 0 || airspaces.length == 0){
+      return false;
+    }
+
     //Check Schengen DEP or DEST
     // eslint-disable-next-line prettier/prettier
     const schengenArea = ['BI','EB','ED','EE','EF','EH','EK','EL','EN','EP','ES','ET','EV','EY','GC','LE','LF','LG','LC','LH','LI','LJ','LK','LM','LO','LP','LS','LZ','LD','LT','DA','DC','GM',];
