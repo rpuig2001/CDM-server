@@ -214,13 +214,13 @@ export class RouteService {
 
   async getAirways(): Promise<Airway[]> {
     const routes: Airway[] = [];
-    let data;
-    let type;
-    let waypointsForCurrentAirway;
-    let name;
-    let lat;
-    let lon;
-    let index;
+    let data = null;
+    let type = null;
+    let waypointsForCurrentAirway = null;
+    let name = null;
+    let lat = null;
+    let lon = null;
+    let index = null;
     //Get Routes
     let src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/ATS.txt',
