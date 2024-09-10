@@ -133,46 +133,81 @@ export class RouteService {
 
   async getWaypoints(): Promise<Waypoint[]> {
     const waypoints: Waypoint[] = [];
+    let lines = null;
+    let data = null;
+    let name = null;
+    let lat = null;
+    let lon = null;
     //Get Waypoints
     let src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/Waypoints.txt',
     );
-    const linesWaypoints = src.split('\n');
-    linesWaypoints.forEach((line) => {
-      const data = line.split(',');
-      const name = data[0];
-      const lat = parseFloat(data[1]);
-      const lon = parseFloat(data[2]);
+    if (src == ""){
+      return [];
+    }
+    lines = src.split('\n');
+    lines.forEach((line) => {
+      data = line.split(',');
+      name = data[0];
+      lat = parseFloat(data[1]);
+      lon = parseFloat(data[2]);
       waypoints.push({ name, lat, lon });
     });
+
+    lines = null;
+    data = null;
+    name = null;
+    lat = null;
+    lon = null;
+    src = null;
 
     //Get navaids
     src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/Navaids.txt',
     );
-    const linesNavaids = src.split('\n');
-    linesNavaids.forEach((line) => {
-      const data = line.split(',');
-      const name = data[0];
-      const lat = parseFloat(data[6]);
-      const lon = parseFloat(data[7]);
+    if (src == ""){
+      return [];
+    }
+    lines = src.split('\n');
+    lines.forEach((line) => {
+      data = line.split(',');
+      name = data[0];
+      lat = parseFloat(data[6]);
+      lon = parseFloat(data[7]);
       waypoints.push({ name, lat, lon });
     });
+
+    lines = null;
+    data = null;
+    name = null;
+    lat = null;
+    lon = null;
+    src = null;
 
     //Get airports
     src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/Airports.txt',
     );
-    const linesAirports = src.split('\n');
-    linesAirports.forEach((line) => {
-      const data = line.split(',');
+    if (src == ""){
+      return [];
+    }
+    lines = src.split('\n');
+    lines.forEach((line) => {
+      data = line.split(',');
       if (data[0] == 'A') {
-        const name = data[1];
-        const lat = parseFloat(data[3]);
-        const lon = parseFloat(data[4]);
+        name = data[1];
+        lat = parseFloat(data[3]);
+        lon = parseFloat(data[4]);
         waypoints.push({ name, lat, lon });
       }
     });
+
+    lines = null;
+    data = null;
+    name = null;
+    lat = null;
+    lon = null;
+    src = null
 
     return waypoints;
   }
@@ -183,6 +218,9 @@ export class RouteService {
     const src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/ATS.txt',
     );
+    if (src == ""){
+      return [];
+    }
     const waypointsForAirway: Waypoint[] = [];
     const linesRoutes = src.split('\n');
     let nameAirway = '';
@@ -259,21 +297,26 @@ export class RouteService {
   }
 
   async fetchGeoJSONFromUrl(url: string): Promise<any> {
+    let response = null;
     try {
-      const response = await axios.get(url);
+      response = await axios.get(url);
       return response.data;
     } catch (error) {
+      response = null;
       console.error('Error fetching GeoJSON data:', error);
-      throw error;
+      return [];
     }
   }
 
   async readFileFromUrl(url: string): Promise<string> {
+    let response = null;
     try {
-      const response = await axios.get(url);
+      response = await axios.get(url);
       return response.data;
     } catch (error) {
-      throw new Error(`Error reading file from URL: ${error.message}`);
+      response = null;
+      console.error(`Error reading file from URL: ${error.message}`);
+      return "";
     }
   }
 
