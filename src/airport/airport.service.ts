@@ -35,14 +35,20 @@ export class AirportService {
   async getOnlineAtc(): Promise<Atc[]> {
     try {
       const response = await axios.get(
-        'https://api.vatsim.net/v2/atc/online        ',
+        'https://data.vatsim.net/v3/vatsim-data.json',
         {
           headers: {
             Accept: 'application/json',
           },
         },
       );
-      return response.data as Atc[];
+      return response.data.controllers.map((controller) => ({
+        id: controller.cid,
+        callsign: controller.callsign,
+        start: controller.logon_time,
+        server: controller.server,
+        rating: controller.rating,
+      })) as Atc[];
     } catch (error) {
       console.error('Error fetching pilots:', error);
       throw error;
@@ -51,10 +57,7 @@ export class AirportService {
 
   async mastersOnline(): Promise<boolean> {
     const masters = await this.findAll();
-    if (masters.length > 0) {
-      return true;
-    }
-    return false;
+    return masters.length > 0;
   }
 
   async removeUnused() {
@@ -71,8 +74,8 @@ export class AirportService {
         }
       }
       if (!found) {
+        await this.removeByPosition(master.position);
         console.log(`[AUTO] Removing master airpot ${master.icao}`);
-        this.removeByPosition(master.position);
       }
     }
   }
