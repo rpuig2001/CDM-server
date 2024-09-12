@@ -4,5 +4,4 @@ export interface Atc {
   start: string;
   server: string;
   rating: number;
-  fp: any;
 }
