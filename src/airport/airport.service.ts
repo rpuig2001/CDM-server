@@ -82,9 +82,9 @@ export class AirportService {
         await this.removeByPosition(master.position);
         console.log(`[AUTO] Removing master airpot ${master.icao}`);
       }
-      masters = null;
-      atcs = null;
     }
+    masters = null;
+    atcs = null;
   }
 
   async getIsMaster(airport: string): Promise<boolean> {
