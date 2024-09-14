@@ -1,5 +1,6 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { Model } from 'mongoose';
+import _ from 'lodash';
 import { DelayedPlane } from './delayedPlane.model';
 import { HelperService } from '../helper/helper.service';
 import { SlotService } from '../slotServices.service';
@@ -82,14 +83,14 @@ export class DelayedPlaneService {
           let restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
-          planeCopy = JSON.parse(JSON.stringify(mainPlane));
-          planesCopy = JSON.parse(JSON.stringify(planes));
+          planeCopy = _.cloneDeep(mainPlane);
+          planesCopy = _.cloneDeep(planes);
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
             this.helperService.addMinutesToTime(mainPlane.tsat, mainPlane.taxi),
             planesCopy,
           );
-          planeCopy = JSON.parse(JSON.stringify(mainPlane));
+          planeCopy = _.cloneDeep(mainPlane);
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             planeCopy,
@@ -101,8 +102,8 @@ export class DelayedPlaneService {
           const cadAirports: cadAirport[] =
             await this.cadAirportService.getAirports(restrictions);
 
-          planeCopy = JSON.parse(JSON.stringify(mainPlane));
-          planesCopy = JSON.parse(JSON.stringify(planes));
+          planeCopy = _.cloneDeep(mainPlane);
+          planesCopy = _.cloneDeep(planes);
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
             planeCopy,
             planesCopy,
@@ -157,15 +158,15 @@ export class DelayedPlaneService {
           let restrictions = await this.restrictionService.getRestrictions();
 
           //calculate
-          planeCopy = JSON.parse(JSON.stringify(mainPlane));
-          planesCopy = JSON.parse(JSON.stringify(planes));
+          planeCopy = _.cloneDeep(mainPlane);
+          planesCopy = _.cloneDeep(planes);
           let calcPlane = await this.slotServiceService.calculatePlane(
             planeCopy,
             this.helperService.addMinutesToTime(mainPlane.eobt, mainPlane.taxi),
             planesCopy,
           );
 
-          planeCopy = JSON.parse(JSON.stringify(mainPlane));
+          planeCopy = _.cloneDeep(mainPlane);
           const initialPlane = await this.slotServiceService.makeCTOTvalid(
             calcPlane,
             planeCopy,
@@ -177,8 +178,8 @@ export class DelayedPlaneService {
           const cadAirports: cadAirport[] =
             await this.cadAirportService.getAirports(restrictions);
 
-          planeCopy = JSON.parse(JSON.stringify(mainPlane));
-          planesCopy = JSON.parse(JSON.stringify(planes));
+          planeCopy = _.cloneDeep(mainPlane);
+          planesCopy = _.cloneDeep(planes);
           calcPlane = await this.slotServiceService.calculatePlaneDestination(
             planeCopy,
             planesCopy,
@@ -196,6 +197,9 @@ export class DelayedPlaneService {
 
           planes = null;
           restrictions = null;
+          planeCopy = null;
+          planesCopy = null;
+          mainPlane = null;
         }
       }
       //Update DB Plane
@@ -273,7 +277,7 @@ export class DelayedPlaneService {
       dbPlane = dbPlanesMap.get(plane.callsign);
       if (dbPlane) {
         if (
-          JSON.stringify(dbPlane.toObject()) !== JSON.stringify(plane) &&
+          !_.isEqual(dbPlane.toObject(), plane) &&
           plane.tsat == dbPlane.tsat
         ) {
           //console.log(`Updating ${dbPlane.callsign}`);
