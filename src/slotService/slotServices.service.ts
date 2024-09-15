@@ -1,4 +1,5 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import { cloneDeep } from 'lodash';
 import { DelayedPlaneService } from './delayedPlanes/delayedPlane.service';
 import { CadAirportService } from './cadAirport/cadAirport.service';
 import { RouteService } from './route/route.service';
@@ -515,7 +516,7 @@ export class SlotService {
       } else if (planes[i].cdmSts == 'I') {
         //console.log(`Skipping ${plane.callsign} as cdm status is INVALID`);
       } else {
-        mainPlane = JSON.parse(JSON.stringify(planes[i]));
+        mainPlane = cloneDeep(planes[i]);
         tempTTOT = this.helperService.addMinutesToTime(
           mainPlane.eobt,
           mainPlane.taxi,
@@ -535,15 +536,15 @@ export class SlotService {
           );
         }
 
-        planeCopy = JSON.parse(JSON.stringify(mainPlane));
-        planesCopy = JSON.parse(JSON.stringify(planes));
+        planeCopy = cloneDeep(mainPlane);
+        planesCopy = cloneDeep(planes);
         calcPlane = await this.calculatePlane(planeCopy, tempTTOT, planesCopy);
 
-        planeCopy = JSON.parse(JSON.stringify(mainPlane));
+        planeCopy = cloneDeep(mainPlane);
         initialPlane = await this.makeCTOTvalid(calcPlane, planeCopy, 1, false);
 
-        planeCopy = JSON.parse(JSON.stringify(mainPlane));
-        planesCopy = JSON.parse(JSON.stringify(planes));
+        planeCopy = cloneDeep(mainPlane);
+        planesCopy = cloneDeep(planes);
         calcPlane = await this.calculatePlaneDestination(
           planeCopy,
           planesCopy,
