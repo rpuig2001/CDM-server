@@ -10,6 +10,9 @@ export class VatsimDataService {
     try {
       const response = await axios.get(this.URL);
       const { pilots } = response.data;
+
+      response.data = null;
+
       return pilots;
     } catch (error) {
       console.error('Error fetching and extracting pilots:', error);

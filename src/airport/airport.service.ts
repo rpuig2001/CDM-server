@@ -34,7 +34,7 @@ export class AirportService {
 
   async getOnlineAtc(): Promise<Atc[]> {
     try {
-      let response = await axios.get(
+      const response = await axios.get(
         'https://data.vatsim.net/v3/vatsim-data.json',
         {
           headers: {
@@ -51,7 +51,7 @@ export class AirportService {
       })) as Atc[];
 
       // Set response to null after data is extracted
-      response = null;
+      response.data = null;
 
       return controllers;
     } catch (error) {
