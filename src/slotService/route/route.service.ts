@@ -7,7 +7,6 @@ import { Waypoint } from './interface/waypoint.interface';
 
 @Injectable()
 export class RouteService {
-
   async calculateEntryExitTimes(
     route: string,
     depTime: string,
