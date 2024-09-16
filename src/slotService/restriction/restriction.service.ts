@@ -71,11 +71,12 @@ export class RestrictionService {
     let planes = await this.delayedPlaneService.getAllDelayedPlanes();
     let planesToUpdate: DelayedPlane[] = [];
     for (let i = 0; i < planes.length; i++) {
-      if (planes[i].atot == '') {
+      if (planes[i].atot == '' && planes[i].cdmSts != 'M') {
         for (let a = 0; a < planes[i].airspaces.length; a++) {
           if (planes[i].airspaces[a].airspace == restriction.airspace) {
             planes[i].airspaces[a].capacity = restriction.capacity;
             planes[i].airspaces[a].reason = restriction.reason;
+            planes[i].modify = true;
             planesToUpdate.push(planes[i]);
           }
         }
