@@ -21,7 +21,6 @@ export class AppService {
       calculateResponse.data = null;
 
       if (global.gc) {
-        console.log('Running GC');
         global.gc();
       }
     } catch (error) {
