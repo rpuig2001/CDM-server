@@ -137,7 +137,7 @@ export class RouteService {
     let src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/Waypoints.txt',
     );
-    if (src == ""){
+    if (src == '') {
       return [];
     }
     const linesWaypoints = src.split('\n');
@@ -153,7 +153,7 @@ export class RouteService {
     src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/Navaids.txt',
     );
-    if (src == ""){
+    if (src == '') {
       return [];
     }
     const linesNavaids = src.split('\n');
@@ -169,7 +169,7 @@ export class RouteService {
     src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/Airports.txt',
     );
-    if (src == ""){
+    if (src == '') {
       return [];
     }
     const linesAirports = src.split('\n');
@@ -192,7 +192,7 @@ export class RouteService {
     const src = await this.readFileFromUrl(
       'https://archivos.vatsimspain.es/Operaciones/Plugins/navdata/ATS.txt',
     );
-    if (src == ""){
+    if (src == '') {
       return [];
     }
     const waypointsForAirway: Waypoint[] = [];
@@ -291,7 +291,7 @@ export class RouteService {
     } catch (error) {
       response = null;
       console.error(`Error reading file from URL: ${error.message}`);
-      return "";
+      return '';
     }
   }
 
