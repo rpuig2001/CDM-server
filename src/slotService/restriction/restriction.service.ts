@@ -76,6 +76,7 @@ export class RestrictionService {
           if (planes[i].airspaces[a].airspace == restriction.airspace) {
             planes[i].airspaces[a].capacity = restriction.capacity;
             planes[i].airspaces[a].reason = restriction.reason;
+            planes[i].modify = true;
             planesToUpdate.push(planes[i]);
           }
         }
