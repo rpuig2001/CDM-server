@@ -11,13 +11,14 @@ export class AppService {
   @Cron('*/5 * * * *')
   async handleCronProcessAndCalculate() {
     try {
-      /*console.log(`Request sent to start calculation`);*/
-      await axios.post(
+      const processResponse = await axios.post(
         'https://cdm-server-production.up.railway.app/slotService/process',
       );
-      await axios.post(
+      const calculateResponse = await axios.post(
         'https://cdm-server-production.up.railway.app/slotService/calculate',
       );
+      processResponse.data = null;
+      calculateResponse.data = null;
     } catch (error) {
       console.error(`HTTP request failed: ${error.message}`);
     }
@@ -26,9 +27,10 @@ export class AppService {
   @Cron('*/1 * * * *')
   async handleCronProcessForMasterAirports() {
     try {
-      await axios.post(
+      const response = await axios.post(
         'https://cdm-server-production.up.railway.app/airport/removedUnusedMasters',
       );
+      response.data = null;
     } catch (error) {
       console.error(`HTTP request failed: ${error.message}`);
     }
