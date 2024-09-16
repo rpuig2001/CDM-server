@@ -7,7 +7,6 @@ import { Waypoint } from './interface/waypoint.interface';
 
 @Injectable()
 export class RouteService {
-  private readonly AIRSPACE_BOUNDARIES = {};
 
   async calculateEntryExitTimes(
     route: string,
