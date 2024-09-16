@@ -1,7 +1,6 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { RestrictionModel } from './restriction.model';
 import { Model } from 'mongoose';
-import { DelayedPlane } from '../delayedPlanes/delayedPlane.model';
 import { DelayedPlaneService } from '../delayedPlanes/delayedPlane.service';
 import { RouteService } from '../route/route.service';
 
@@ -40,11 +39,9 @@ export class RestrictionService {
           reason: '',
         });
       }
-      airspaces = null;
-      return true;
     }
     airspaces = null;
-    return false;
+    return true;
   }
 
   async addRestriction(
@@ -69,7 +66,6 @@ export class RestrictionService {
 
   async updateRestriction(restriction: RestrictionModel): Promise<boolean> {
     let planes = await this.delayedPlaneService.getAllDelayedPlanes();
-    let planesToUpdate: DelayedPlane[] = [];
     for (let i = 0; i < planes.length; i++) {
       if (planes[i].atot == '') {
         for (let a = 0; a < planes[i].airspaces.length; a++) {
@@ -77,13 +73,11 @@ export class RestrictionService {
             planes[i].airspaces[a].capacity = restriction.capacity;
             planes[i].airspaces[a].reason = restriction.reason;
             planes[i].modify = true;
-            planesToUpdate.push(planes[i]);
           }
         }
       }
     }
-    await this.delayedPlaneService.updatePlanes(planesToUpdate);
-    planesToUpdate = null;
+    await this.delayedPlaneService.updatePlanes(planes);
     planes = null;
     return true;
   }
