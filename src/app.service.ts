@@ -19,6 +19,10 @@ export class AppService {
       );
       processResponse.data = null;
       calculateResponse.data = null;
+
+      if (global.gc) {
+        global.gc();
+      }
     } catch (error) {
       console.error(`HTTP request failed: ${error.message}`);
     }
